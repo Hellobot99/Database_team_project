@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ include file="admin_check.jsp" %>
 <%@ page language="java" import="java.sql.*" %>
+<%@ page language="java" import="util.DBconnection" %>
 <%
     String userID_to_delete = request.getParameter("userID");
 
@@ -11,18 +12,13 @@
         return;
     }
 
-    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-    String user = "DBA_PROJECT";
-    String pass = "1234";
-
     Connection conn = null;
     PreparedStatement pstmt = null;
 
     String sql = "DELETE FROM USERS WHERE UserID = ?";
 
     try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(url, user, pass);
+    	conn = DBconnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userID_to_delete);
         

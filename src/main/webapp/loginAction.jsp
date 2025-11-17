@@ -1,18 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page language="java" import="java.sql.*" %>
+<%@ page language="java" import="util.DBconnection" %>
+
 <%
     request.setCharacterEncoding("UTF-8");
 
     String userID = request.getParameter("userID");
     String password = request.getParameter("password");
-
-    String serverIP = "localhost";
-    String strSID = "orcl"; 
-    String portNum = "1521";
-    String user = "DBA_PROJECT";
-    String pass = "1234";
-    String url = "jdbc:oracle:thin:@"+serverIP+":"+portNum+":"+strSID;
 
     Connection conn = null;
     PreparedStatement pstmt = null;
@@ -21,8 +16,7 @@
     String sql = "SELECT UserID, Name, Tier FROM USERS WHERE UserID = ? AND Password = ?";
 
     try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(url, user, pass);
+        conn = DBconnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userID);
         pstmt.setString(2, password);

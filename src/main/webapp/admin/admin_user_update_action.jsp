@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ include file="admin_check.jsp" %>
 <%@ page language="java" import="java.sql.*" %>
+<%@ page language="java" import="util.DBconnection" %>
 <%
     request.setCharacterEncoding("UTF-8");
     String userID = request.getParameter("userID");
@@ -9,19 +10,14 @@
     String password = request.getParameter("password");
     String tier = request.getParameter("tier");
     long balance = Long.parseLong(request.getParameter("balance"));
-
-    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-    String user = "DBA_PROJECT";
-    String pass = "1234";
-
+    
     Connection conn = null;
     PreparedStatement pstmt = null;
 
     String sql = "UPDATE USERS SET Name = ?, Password = ?, Tier = ?, Balance = ? WHERE UserID = ?";
 
     try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(url, user, pass);
+    	conn = DBconnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, name);
         pstmt.setString(2, password);

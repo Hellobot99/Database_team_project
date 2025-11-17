@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ include file="admin_check.jsp" %>
 <%@ page language="java" import="java.sql.*" %>
+<%@ page language="java" import="util.DBconnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,10 +58,6 @@
         </thead>
         <tbody>
 <%
-    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-    String user = "DBA_PROJECT";
-    String pass = "1234";
-
     Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -74,8 +71,7 @@
     sql += " ORDER BY Name";
 
     try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(url, user, pass);
+    	conn = DBconnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         
         if (searchQuery != null && !searchQuery.isEmpty()) {

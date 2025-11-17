@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ include file="admin_check.jsp" %>
 <%@ page language="java" import="java.sql.*" %>
+<%@ page language="java" import="util.DBconnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,10 +23,6 @@
 <%
     String userID_to_update = request.getParameter("userID");
 
-    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-    String user = "DBA_PROJECT";
-    String pass = "1234";
-
     Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -36,8 +33,7 @@
     long currentBalance = 0;
 
     try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(url, user, pass);
+    	conn = DBconnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userID_to_update);
         rs = pstmt.executeQuery();
