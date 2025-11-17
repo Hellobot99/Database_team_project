@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page language="java" import="java.sql.*" %>
-<%@ page language="java" import="util.DBconnection" %>
+<%@ page language="java" import="TeamPrj.DBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,7 +23,7 @@
     String message = "";
 
     try {
-    	conn = DBconnection.getConnection();
+    	conn = DBConnection.getConnection();
 
         String sql = "INSERT INTO USERS (UserID, Password, Name, Balance, Tier) "
                    + " VALUES (?, ?, ?, 0, 'Bronze')";

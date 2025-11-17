@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page language="java" import="java.sql.*" %>
-<%@ page language="java" import="util.DBconnection" %>
+<%@ page language="java" import="TeamPrj.DBConnection" %>
 
 <%
     request.setCharacterEncoding("UTF-8");
@@ -16,7 +16,7 @@
     String sql = "SELECT UserID, Name, Tier FROM USERS WHERE UserID = ? AND Password = ?";
 
     try {
-        conn = DBconnection.getConnection();
+        conn = DBConnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userID);
         pstmt.setString(2, password);
@@ -24,8 +24,8 @@
         rs = pstmt.executeQuery();
 
         if (rs.next()) {
-            session.setAttribute("loggedInUserId", rs.getString("UserID"));
-            session.setAttribute("loggedInName", rs.getString("Name"));
+            session.setAttribute("userId", rs.getString("UserID"));
+            session.setAttribute("userName", rs.getString("Name"));
             session.setAttribute("userTier", rs.getString("Tier")); // ★ Tier 정보 저장
             
             response.sendRedirect("index.jsp");
