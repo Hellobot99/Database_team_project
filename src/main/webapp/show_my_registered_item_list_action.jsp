@@ -2,7 +2,10 @@
     pageEncoding="UTF-8"%>
     
 <%@ page language="java" import="java.text.*, java.sql.*, TeamPrj.DBConnection" %>
-
+<%
+    String userId = (String) session.getAttribute("userId");
+    if (userId == null) { response.sendRedirect("login.html"); return; }
+%>
 
 <!DOCTYPE html>
 <html>
@@ -12,21 +15,17 @@
 </head>
 <body>
 <%
+/*
 
-	Connection conn = DBConnection.getConnection();
-	conn.setAutoCommit(false);
-	
-    request.setCharacterEncoding("UTF-8");
 
     String deleteAuctionId = request.getParameter("delete_auction_id");
-    String user_id_4_1 = request.getParameter("user_id_4_1");
     String updateInventoryId = request.getParameter("inventoryid");
 
-    if (deleteAuctionId != null && user_id_4_1 != null && !deleteAuctionId.isEmpty()) {
+    if (deleteAuctionId != null && userId != null && !deleteAuctionId.isEmpty()) {
     	String cntSql = "select count(*) from bidding_record B where auctionid = ? and bidderid = ?";
     	PreparedStatement cntPstmt = conn.prepareStatement(cntSql);
     	cntPstmt.setString(1, deleteAuctionId);
-    	cntPstmt.setString(2, user_id_4_1);
+    	cntPstmt.setString(2, userId);
     	ResultSet rs = cntPstmt.executeQuery();
     	if(rs.next()){
     		int cnt = rs.getInt(1);
@@ -38,7 +37,7 @@
 		        Timestamp now = new Timestamp(System.currentTimeMillis());
 		        delPstmt.setTimestamp(1, now);
 		        delPstmt.setString(2, deleteAuctionId);
-		        delPstmt.setString(3, user_id_4_1);
+		        delPstmt.setString(3, userId);
 		        int deleted = delPstmt.executeUpdate();
 		        delPstmt.close();
 		        
@@ -54,19 +53,23 @@
     	}
 		cntPstmt.close(); rs.close();
     }
-%>
+*/
 
+%>
 <%
-	user_id_4_1 = request.getParameter("user_id_4_1");
+	Connection conn = DBConnection.getConnection();
+	conn.setAutoCommit(false);
+	
+	request.setCharacterEncoding("UTF-8");
 	String sql = "select A.auctionid, I.name, INV.conditions, A.start_price, A.currenthighestprice,  A.starttime, A.endTime, A.registerinventoryid " +
 				 "from auction A join inventory INV on A.registerinventoryid = INV.inventoryid join item I on I.itemid = INV.itemid " +
 				 "where A.sellerid = ? and A.EndTime > ?";
 	PreparedStatement pstmt = conn.prepareStatement(sql);
-	pstmt.setString(1, user_id_4_1);
+	pstmt.setString(1, userId);
     Timestamp now2 = new Timestamp(System.currentTimeMillis());
     pstmt.setTimestamp(2, now2);
 	ResultSet rs = pstmt.executeQuery();
-	out.println("<table border = 1><tr><th>AUCTION_ID</th><th>ITEM_NAME</th><th>CONDITIONS</th><th>START_PRICE</th><th>CURRENT_HIGHEST_PRICE</th><th>START_TIME</th><th>END_TIME</th><th>CANCEL</th></tr>");
+	out.println("<table border = 1><tr><th>AUCTION_ID</th><th>ITEM_NAME</th><th>CONDITIONS</th><th>START_PRICE</th><th>CURRENT_HIGHEST_PRICE</th><th>START_TIME</th><th>END_TIME</th></tr>");
 	boolean hasRow = false;
 	while(rs.next()){
 		hasRow = true;
@@ -79,17 +82,16 @@
 		out.println("<td>"+ rs.getString(5) + "</td>");
 		out.println("<td>"+ rs.getString(6).substring(0, 19) + "</td>");
 		out.println("<td>"+ rs.getString(7).substring(0, 19) + "</td>");
-		
+		/*
 		String inventoryid = rs.getString(8);
         out.println("<td>");
         out.println("<form method='POST' action='show_my_registered_item_list_action.jsp' style='margin:0;'>");
-        out.println("<input type='hidden' name='user_id_4_1' value='" + user_id_4_1 + "'/>");
         out.println("<input type='hidden' name='delete_auction_id' value='" + auctionId + "'/>");
         out.println("<input type='hidden' name='inventoryid' value = '" + inventoryid + "'/>");
         out.println("<input type='submit' value='Delete'/>");
         out.println("</form>");
         out.println("</td>");
-		
+		*/
 		out.println("</tr>");
 	}
 	if (!hasRow) {

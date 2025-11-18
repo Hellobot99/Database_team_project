@@ -1,7 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-   
+
 <%@ page language = "java" import = "java.text.*, java.sql.*, TeamPrj.DBConnection" %>
+<%
+    String userId = (String) session.getAttribute("userId");
+    if (userId == null) { response.sendRedirect("login.html"); return; }
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,6 +14,7 @@
 </head>
 <body>
 
+    
 
 <%
 
@@ -20,7 +25,6 @@ String mode = request.getParameter("mode");
 String inventoryId = request.getParameter("inventory_id");
 String invQuantity = request.getParameter("inv_quantity");
 String itemId = request.getParameter("item_id");
-String userId = request.getParameter("user_id");
 
 if (invQuantity != null && Integer.parseInt(invQuantity) == 0){
 %>
@@ -110,12 +114,11 @@ if ("step2".equals(mode)) {
 <%
 	Connection conn = DBConnection.getConnection();
 	conn.setAutoCommit(false);
-	String user_id_4_1 = request.getParameter("user_id_4_1");
 	String sql = "select INV.inventoryid, IT.name, INV.quantity, INV.conditions, INV.acquired_date, INV.itemid, INV.userid " +
 		   "from inventory INV join item IT on INV.itemid = IT.itemid " +
 	 	   "where INV.userid = ?";
 	PreparedStatement pstmt = conn.prepareStatement(sql);
-	pstmt.setString(1, user_id_4_1);
+	pstmt.setString(1, userId);
 	ResultSet rs = pstmt.executeQuery();
 	out.println("<table border='1'><tr><th>INVENTORY_ID</th><th>ITEM_NAME</th><th>QUANTITY</th><th>CONDITION</th><th>ACQUIRED_DATE</th><th>REGISTER</th></tr>");
 	

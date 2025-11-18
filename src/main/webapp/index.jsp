@@ -95,17 +95,16 @@ h2 {
 		</h2>
 
 		<a href="myProfile.jsp" class="btn blue">내 정보 조회</a> <a
-			href="inventory.jsp" class="btn blue">내 인벤토리</a> <a
+			href="my_inventory_list_action.jsp" class="btn blue">내 인벤토리</a> <a
 			href="deleteAccount.html" class="btn blue">회원 탈퇴</a> <a
 			href="logoutAction.jsp" class="btn red">로그아웃</a>
-		<a href="my_inventory_list.jsp" class="btn blue">내 인벤토리(경매 등록 기능 추가)</a>
 
 
 		<div class="section-title">경매 기능</div>
 
-		<a href="market_record_list.html" class="btn blue">경매 목록 보기(조건 추가)</a>
-		<a href="conditioned_auction_view.html" class="btn blue">아이템 별 구매 이력</a>
-		<a href="show_my_registered_item_list.html" class="btn blue">내가 등록한 아이템</a>
+		<a href="search_registered_items_by_condition.html" class="btn blue">경매 검색</a>
+		<a href="market_record_list.html" class="btn blue">아이템 별 구매 이력</a>
+		<a href="show_my_registered_item_list_action.jsp" class="btn blue">내가 등록한 아이템</a>
 		<a href="auction_list.jsp" class="btn blue">경매 목록 보기</a> <a
 			href="category_list.jsp" class="btn blue">카테고리별 아이템</a> <a
 			href="favorite_list.jsp" class="btn blue">내 즐겨찾기</a> <a
