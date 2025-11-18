@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
     
-<%@ page language="java" import="java.text.*, java.sql.*, util.DBconnection" %>
+<%@ page language="java" import="java.text.*, java.sql.*, TeamPrj.DBConnection" %>
 
 
 <!DOCTYPE html>
@@ -13,7 +13,7 @@
 <body>
 <%
 
-	Connection conn = DBconnection.getConnection();
+	Connection conn = DBConnection.getConnection();
 	conn.setAutoCommit(false);
 	
     request.setCharacterEncoding("UTF-8");

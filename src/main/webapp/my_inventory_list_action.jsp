@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
    
-<%@ page language = "java" import = "java.text.*, java.sql.*, util.DBconnection" %>
+<%@ page language = "java" import = "java.text.*, java.sql.*, TeamPrj.DBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -54,7 +54,7 @@ if (invQuantity != null && Integer.parseInt(invQuantity) == 0){
 <%
 if ("step2".equals(mode)) {
     String startPrice = request.getParameter("start_price");
-    Connection conn = DBconnection.getConnection();
+    Connection conn = DBConnection.getConnection();
     conn.setAutoCommit(false);
     PreparedStatement pstmt = null;
     
@@ -108,7 +108,7 @@ if ("step2".equals(mode)) {
 }
 %>
 <%
-	Connection conn = DBconnection.getConnection();
+	Connection conn = DBConnection.getConnection();
 	conn.setAutoCommit(false);
 	String user_id_4_1 = request.getParameter("user_id_4_1");
 	String sql = "select INV.inventoryid, IT.name, INV.quantity, INV.conditions, INV.acquired_date, INV.itemid, INV.userid " +
