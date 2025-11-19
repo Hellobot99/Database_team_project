@@ -1,7 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page language="java" import="java.sql.*" %>
-<%@ page language="java" import="TeamPrj.DBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -84,6 +83,13 @@
         return; 
     }
 
+    String serverIP = "localhost";
+    String strSID = "orcl"; 
+    String portNum = "1521";
+    String user = "DBA_PROJECT";
+    String pass = "1234";
+    String url = "jdbc:oracle:thin:@"+serverIP+":"+portNum+":"+strSID;
+
     Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -95,7 +101,8 @@
     String currentTier = "";
 
     try {
-    	conn = DBConnection.getConnection();
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        conn = DriverManager.getConnection(url, user, pass);
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userId);
         

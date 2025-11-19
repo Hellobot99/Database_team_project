@@ -44,8 +44,7 @@ h2 {
 
 		<%
 		Connection conn = DBConnection.getConnection();
-		PreparedStatement ps = conn.prepareStatement("SELECT i.Name, i.Description, inv.Quantity " + "FROM INVENTORY inv "
-				+ "JOIN ITEM i ON inv.ItemID = i.ItemID " + "WHERE inv.UserID = ?");
+		PreparedStatement ps = conn.prepareStatement("SELECT i.Name, i.Description, inv.Quantity " + "FROM INVENTORY inv " + "JOIN ITEM i ON inv.ItemID = i.ItemID " + "WHERE inv.UserID = ?");
 		ps.setString(1, userId);
 		ResultSet rs = ps.executeQuery();
 

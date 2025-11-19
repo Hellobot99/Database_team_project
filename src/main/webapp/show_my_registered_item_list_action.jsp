@@ -62,7 +62,7 @@
 	
 	request.setCharacterEncoding("UTF-8");
 	String sql = "select A.auctionid, I.name, INV.conditions, A.start_price, A.currenthighestprice,  A.starttime, A.endTime, A.registerinventoryid " +
-				 "from auction A join inventory INV on A.registerinventoryid = INV.inventoryid join item I on I.itemid = INV.itemid " +
+				 "from auction A join inventory INV on A.registerinventoryID = INV.inventoryid join item I on I.itemid = INV.itemid " +
 				 "where A.sellerid = ? and A.EndTime > ?";
 	PreparedStatement pstmt = conn.prepareStatement(sql);
 	pstmt.setString(1, userId);

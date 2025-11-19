@@ -4,7 +4,7 @@
 <%@ page language="java" import="java.sql.*" %>
 <%@ page language="java" import="TeamPrj.DBConnection" %>
 <%
-request.setCharacterEncoding("UTF-8");
+    request.setCharacterEncoding("UTF-8");
     String userID = request.getParameter("userID");
     String password = request.getParameter("password");
     String name = request.getParameter("name");

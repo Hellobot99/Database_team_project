@@ -4,7 +4,7 @@
 <%@ page language="java" import="java.sql.*" %>
 <%@ page language="java" import="TeamPrj.DBConnection" %>
 <%
-String userID_to_delete = request.getParameter("userID");
+    String userID_to_delete = request.getParameter("userID");
 
     String loggedInAdmin = (String) session.getAttribute("loggedInUserId");
     if (userID_to_delete.equals(loggedInAdmin)) {

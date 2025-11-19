@@ -58,7 +58,7 @@
         </thead>
         <tbody>
 <%
-Connection conn = null;
+    Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
 
