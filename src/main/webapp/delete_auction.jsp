@@ -26,7 +26,7 @@ if(request.getMethod().equals("POST")) {
 
     // 입찰 기록 체크
     PreparedStatement check = conn.prepareStatement(
-            "SELECT COUNT(*) FROM BIDDING_RECORD WHERE AUCTION_ID = ?");
+            "SELECT COUNT(*) FROM BIDDING_RECORD WHERE AUCTIONID = ?");
     check.setLong(1, auctionId);
 
     ResultSet r = check.executeQuery();
@@ -36,7 +36,7 @@ if(request.getMethod().equals("POST")) {
         out.println("입찰이 이미 존재하여 삭제 불가!");
     } else {
         PreparedStatement del = conn.prepareStatement(
-                "DELETE FROM AUCTION WHERE AUCTION_ID = ?");
+                "DELETE FROM AUCTION WHERE AUCTIONID = ?");
         del.setLong(1, auctionId);
         int ok = del.executeUpdate();
         out.println(ok > 0 ? "삭제 완료!" : "삭제 실패!");

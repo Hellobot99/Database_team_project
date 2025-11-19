@@ -32,15 +32,31 @@ if (userId == null) {
 
 		long auctionId = Long.parseLong(request.getParameter("auctionId"));
 		Connection conn = DBConnection.getConnection();
+		
+		PreparedStatement checkStmt = conn.prepareStatement("SELECT TradeID FROM TRANSACTION WHERE AuctionID = ?");
+		checkStmt.setLong(1, auctionId);
+		ResultSet checkRs = checkStmt.executeQuery();
+
+		if (checkRs.next()) {
+			out.println("<script>alert('이미 종료된 경매(거래 완료)입니다.'); history.back();</script>");
+			checkRs.close();
+			checkStmt.close();
+			conn.close();
+			return;
+		}
+		checkRs.close();
+		checkStmt.close();
 
 		// 1️⃣ AuctionID → ItemID 가져오기
-		PreparedStatement getItem = conn.prepareStatement("SELECT ItemID FROM AUCTION WHERE AuctionID = ?");
+		PreparedStatement getItem = conn.prepareStatement("SELECT ItemID, SellerID FROM AUCTION WHERE AuctionID = ?");
 		getItem.setLong(1, auctionId);
 		ResultSet itemRS = getItem.executeQuery();
 
 		long itemId = -1;
+		String sellerId = null;
 		if (itemRS.next()) {
 			itemId = itemRS.getLong(1);
+			sellerId = itemRS.getString(2);
 		}
 
 		itemRS.close();
@@ -57,13 +73,18 @@ if (userId == null) {
 		if (rs.next()) {
 			String buyer = rs.getString(1);
 			long price = rs.getLong(2);
+			long commission = (long)(price * 0.1);
 
 			// 3️⃣ TRANSACTION 생성
 			PreparedStatement insert = conn.prepareStatement(
-			"INSERT INTO TRANSACTION (AuctionID, BuyerID, FinalPrice, CreatedAt) VALUES (?, ?, ?, SYSDATE)");
+			"INSERT INTO TRANSACTION (TradeID, AuctionID, BuyerID, SELLERID, Final_Price, COMMISSION, TRADETIME) " +
+			"VALUES (seq_transaction_id.NEXTVAL, ?, ?, ?, ?, ?, SYSDATE)");
+			
 			insert.setLong(1, auctionId);
 			insert.setString(2, buyer);
-			insert.setLong(3, price);
+			insert.setString(3, sellerId);
+			insert.setLong(4, price);
+			insert.setLong(5, commission);
 			insert.executeUpdate();
 			insert.close();
 
