@@ -1,132 +1,113 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-String userId = (String) session.getAttribute("userId");
-if (userId == null) {
-	response.sendRedirect("login.html");
-	return;
-}
+    String userId = (String) session.getAttribute("userId");
+    String userTier = (String) session.getAttribute("userTier");
+    if (userId == null) { response.sendRedirect("login.html"); return; }
 %>
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>경북대학교 경매 시스템</title>
-
+<title>경매장 메인</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-body {
-	font-family: Pretendard, sans-serif;
-	background: #f7f7f7;
-	margin: 0;
-	padding: 0;
-}
+    body { background-color: #121212; color: #e0e0e0; font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
+    
+    .lobby-container { max-width: 1100px; margin: 50px auto; text-align: center; }
+    h1 { margin-bottom: 40px; color: #fff; text-shadow: 0 0 10px #ff9900; }
 
-.container {
-	width: 500px;
-	margin: 50px auto;
-	background: white;
-	border-radius: 15px;
-	padding: 40px;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-	text-align: center;
-}
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        padding: 20px;
+    }
 
-h1 {
-	font-size: 28px;
-	margin-bottom: 25px;
-}
+    .menu-card {
+        background: #2a2a2a;
+        border: 2px solid #444;
+        border-radius: 12px;
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
 
-h2 {
-	font-weight: normal;
-	margin-bottom: 30px;
-}
+    .menu-card:hover { transform: translateY(-5px); border-color: #ff9900; background: #333; }
+    
+    .menu-icon { font-size: 3.5em; margin-bottom: 15px; }
+    .menu-title { font-size: 1.4em; font-weight: bold; }
+    .menu-desc { font-size: 0.9em; color: #888; margin-top: 5px; }
 
-.btn {
-	display: block;
-	width: 90%;
-	padding: 14px;
-	margin: 10px auto;
-	border: none;
-	border-radius: 8px;
-	font-size: 18px;
-	font-weight: 600;
-	cursor: pointer;
-	color: white;
-	text-decoration: none;
-}
+    .search-card { border-bottom: 5px solid #00c6ff; }
+    .market-card { border-bottom: 5px solid #28a745; }
+    .sell-card   { border-bottom: 5px solid #ffc107; }
+    .guide-card  { border-bottom: 5px solid #d63384; }
 
-.blue {
-	background: #007bff;
-}
-
-.red {
-	background: #dc3545;
-}
-
-.green {
-	background: #28a745;
-}
-
-.yellow {
-	background: #ffc107;
-	color: black;
-}
-
-.grey {
-	background: #6c757d;
-}
-
-.section-title {
-	text-align: left;
-	margin-top: 40px;
-	font-size: 20px;
-	font-weight: 700;
-}
+    .sub-menu { margin-top: 40px; background: #1e1e1e; padding: 20px; border-radius: 10px; display: inline-block; border: 1px solid #333; }
+    .sub-link { color: #aaa; text-decoration: none; margin: 0 15px; font-weight: bold; transition: color 0.2s; }
+    .sub-link:hover { color: #fff; text-decoration: underline; }
 </style>
 </head>
-
 <body>
+    <jsp:include page="header.jsp" />
 
-	<div class="container">
+    <div class="lobby-container">
+        <h1>TRADING CENTER</h1>
 
-		<h1>경북대학교 경매 시스템</h1>
-		<h2><%=userId%>님 환영합니다!
-		</h2>
+        <div class="menu-grid">
+            <a href="auction_list.jsp" class="menu-card search-card">
+                <div class="menu-icon">🔍</div>
+                <div class="menu-title">검색 (구매)</div>
+                <div class="menu-desc">등록된 아이템 입찰하기</div>
+            </a>
 
-		<a href="myProfile.jsp" class="btn blue">내 정보 조회</a> <a
-			href="my_inventory_list_action.jsp" class="btn blue">내 인벤토리</a> <a
-			href="deleteAccount.html" class="btn blue">회원 탈퇴</a> <a
-			href="logoutAction.jsp" class="btn red">로그아웃</a>
+            <a href="market_price.jsp" class="menu-card market-card">
+                <div class="menu-icon">📈</div>
+                <div class="menu-title">시세</div>
+                <div class="menu-desc">최근 거래 완료된 가격</div>
+            </a>
 
+            <a href="show_my_registered_item_list_action.jsp" class="menu-card sell-card">
+                <div class="menu-icon">💰</div>
+                <div class="menu-title">판매 관리</div>
+                <div class="menu-desc">내 아이템 등록/삭제 하기</div>
+            </a>
 
-		<div class="section-title">경매 기능</div>
+            <a href="tutorial.jsp" class="menu-card guide-card">
+                <div class="menu-icon">📘</div>
+                <div class="menu-title">튜토리얼</div>
+                <div class="menu-desc">게임 이용 가이드</div>
+            </a>
+        </div>
+        
+        <div class="sub-menu">
+            <a href="my_history.jsp" class="sub-link" style="color:#ffcc00;">📜 나의 거래 내역</a> | 
+            <a href="myAuction.jsp" class="sub-link">참여 중인 경매</a> |
+            <a href="myProfile.jsp" class="sub-link">내 정보</a>
+            <% if ("ADMIN".equals(userTier)) { %> | <a href="admin/admin_menu.jsp" class="sub-link" style="color:#28a745;">관리자</a> <% } %>
+        </div>
+    </div>
 
-		<a href="search_registered_items_by_condition.html" class="btn blue">경매 검색</a>
-		<a href="market_record_history.html" class="btn blue">아이템 별 구매 이력</a>
-		<a href="show_my_registered_item_list_action.jsp" class="btn blue">내가 등록한 아이템</a>
-		<a href="auction_list.jsp" class="btn blue">경매 목록 보기</a> <a
-			href="category_list.jsp" class="btn blue">카테고리별 아이템</a> <a
-			href="favorite_list.jsp" class="btn blue">내 즐겨찾기</a> <a
-			href="myAuction.jsp" class="btn blue">내가 참여한 경매</a> <a
-			href="close_auction.jsp" class="btn yellow">경매 종료</a> <a
-			href="delete_auction.jsp" class="btn grey">경매 삭제</a>
+    <script>
+        window.onload = function() {
+            var tier = "<%= userTier %>";
+            var hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
 
-		<%
-		String tier = (String) session.getAttribute("userTier");
-		%>
-
-		<%
-		if (tier != null && tier.equals("ADMIN")) {
-		%>
-		<div class="section-title">관리자 전용</div>
-		<a href="admin/admin_menu.jsp" class="btn green">관리자 메뉴</a>
-		<%
-		}
-		%>
-
-
-	</div>
-
+            if ((tier === "ROOKIE") && !hasSeenTutorial) {
+                if(confirm("신규 플레이어시군요! \n게임 이용 방법을 알 수 있는 [튜토리얼]로 이동하시겠습니까?")) {
+                    localStorage.setItem("hasSeenTutorial", "true");
+                    location.href = "tutorial.jsp";
+                } else {
+                    localStorage.setItem("hasSeenTutorial", "true");
+                }
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,68 +1,49 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<%@ page language="java" import="java.sql.*" %>
-<%@ page language="java" import="TeamPrj.DBConnection" %>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>회원가입 처리</title>
-</head>
-<body>
-<h1>회원가입 처리 결과</h1>
-
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, TeamPrj.DBConnection" %>
 <%
     request.setCharacterEncoding("UTF-8");
 
     String userID = request.getParameter("userID");
-    String password = request.getParameter("password");
-    String name = request.getParameter("name");
+    String userPW = request.getParameter("password");
+    String userName = request.getParameter("name");
+
+    if (userID == null || userPW == null || userName == null ||
+        userID.isEmpty() || userPW.isEmpty() || userName.isEmpty()) {
+        out.println("<script>alert('모든 정보를 입력해주세요.'); history.back();</script>");
+        return;
+    }
 
     Connection conn = null;
     PreparedStatement pstmt = null;
-    String message = "";
 
     try {
-    	conn = DBConnection.getConnection();
+        conn = DBConnection.getConnection();
 
-        String sql = "INSERT INTO USERS (UserID, Password, Name, Balance, Tier) "
-                   + " VALUES (?, ?, ?, 0, 'Bronze')";
-
-        pstmt = conn.prepareStatement(sql);
+        String sql = "INSERT INTO USERS (UserID, Password, Name, Tier, Balance) VALUES (?, ?, ?, 'ROOKIE', 3000)";
         
+        pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userID);
-        pstmt.setString(2, password);
-        pstmt.setString(3, name);
+        pstmt.setString(2, userPW);
+        pstmt.setString(3, userName);
+        
+        int result = pstmt.executeUpdate();
 
-        int rowsAffected = pstmt.executeUpdate();
-
-        if (rowsAffected > 0) {
-            message = "<h2>" + name + "님, 회원가입 성공!</h2>" 
-                    + "<p>ID: " + userID + "로 등록되었습니다.</p>";
+        if (result > 0) {
+            out.println("<script>");
+            out.println("alert('회원가입 성공! ROOKIE 등급으로 시작하며, 정착 지원금 3,000G가 지급되었습니다.');");
+            out.println("location.href='login.html';");
+            out.println("</script>");
         } else {
-            message = "<h2>회원가입 실패</h2><p>데이터베이스 처리 중 오류가 발생했습니다.</p>";
+            out.println("<script>alert('회원가입에 실패했습니다.'); history.back();</script>");
         }
 
-    } catch (SQLException se) {
-        if (se.getErrorCode() == 1) {
-            message = "<h2>회원가입 실패</h2><p>오류: 이미 존재하는 아이디입니다: " + userID + "</p>";
-        } else {
-            message = "<h2>DB SQL 오류</h2><p>" + se.getMessage() + "</p>";
-        }
-        se.printStackTrace();
+    } catch (SQLIntegrityConstraintViolationException e) {
+        out.println("<script>alert('이미 존재하는 아이디입니다.'); history.back();</script>");
     } catch (Exception e) {
-        message = "<h2>기타 오류</h2><p>" + e.getMessage() + "</p>";
         e.printStackTrace();
+        out.println("<script>alert('오류 발생: " + e.getMessage() + "'); history.back();</script>");
     } finally {
-        if (pstmt != null) pstmt.close();
-        if (conn != null) conn.close();
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (conn != null) try { conn.close(); } catch (Exception e) {}
     }
 %>
-
-    <%= message %>
-
-    <br>
-    <a href="register.html">회원가입 페이지로 돌아가기</a>
-
-</body>
-</html>
