@@ -14,10 +14,13 @@
 
     try {
         conn = DBConnection.getConnection();
+        conn.setAutoCommit(false);
         ps = conn.prepareStatement("INSERT INTO FAVORITE (UserID, AuctionID) VALUES (?, ?)");
         ps.setString(1, userId);
         ps.setLong(2, auctionId);
         ps.executeUpdate();
+
+        conn.commit();
 
         out.println("<script>");
         out.println("alert('즐겨찾기에 추가되었습니다.');");
@@ -25,12 +28,17 @@
         out.println("</script>");
 
     } catch (Exception e) {
+        try {
+            if (conn != null) conn.rollback();
+        } catch (Exception rollbackEx) {
+            System.out.println("Rollback Error : " + rollbackEx.getMessage());
+        }
         out.println("<script>");
         out.println("alert('이미 즐겨찾기한 경매입니다.');");
         out.println("location.href='auction_list.jsp';");
         out.println("</script>");
     } finally {	
         if (ps != null) ps.close();
-        if (conn != null) conn.close();
+        if (conn != null) {conn.setAutoCommit(true); conn.close();}
     }
 %>
