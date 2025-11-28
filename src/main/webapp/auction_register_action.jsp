@@ -15,7 +15,7 @@
 
     try {
         conn = DBConnection.getConnection();
-        
+        conn.setAutoCommit(false);
         String sqlCheck = "SELECT Quantity FROM INVENTORY WHERE InventoryID = ? AND UserID = ?";
         pstmt = conn.prepareStatement(sqlCheck);
         pstmt.setInt(1, invenId);
@@ -50,7 +50,7 @@
                 pstmt.setInt(1, invenId);
                 pstmt.executeUpdate();
             }
-            
+            conn.commit();
             out.println("<script>alert('경매 등록이 완료되었습니다!'); location.href='show_my_registered_item_list_action.jsp';</script>");
         } else {
             out.println("<script>alert('아이템이 존재하지 않습니다.'); history.back();</script>");
@@ -58,8 +58,21 @@
 
     } catch(Exception e) {
         e.printStackTrace();
+        
+        if (conn != null) {
+            try { 
+            	conn.rollback(); 
+            } catch(Exception ex) {
+            	System.err.println("Rollback failed: " + ex.getMessage());
+ 			}
+        }
         out.println("<script>alert('등록 중 오류 발생: " + e.getMessage() + "'); history.back();</script>");
     } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (Exception ex) {
+                System.err.println("Failed to reset auto-commit: " + ex.getMessage());
+            }
         if(rs!=null) rs.close(); if(pstmt!=null) pstmt.close(); if(conn!=null) conn.close();
     }
 %>
