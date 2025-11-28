@@ -20,7 +20,7 @@
 
     try {
         conn = DBConnection.getConnection();
-        
+        conn.setAutoCommit(false);
         String sql = "DELETE FROM FAVORITE WHERE UserID = ? AND AuctionID = ?";
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userId);
@@ -33,12 +33,18 @@
         } else {
             out.println("<script>alert('삭제할 내역이 없거나 이미 삭제되었습니다.'); history.back();</script>");
         }
+        conn.commit();
 
     } catch (Exception e) {
         e.printStackTrace();
+        try {
+            if (conn != null) conn.rollback();
+        } catch (Exception rollbackEx) {
+            rollbackEx.printStackTrace();
+        }
         out.println("<script>alert('오류 발생: " + e.getMessage().replace("'", "") + "'); history.back();</script>");
     } finally {
         if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
-        if (conn != null) try { conn.close(); } catch (Exception e) {}
+        if (conn != null) try { conn.setAutoCommit(true); conn.close(); } catch (Exception e) {}
     }
 %>
