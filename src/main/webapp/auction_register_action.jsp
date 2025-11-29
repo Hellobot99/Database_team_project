@@ -58,21 +58,13 @@
 
     } catch(Exception e) {
         e.printStackTrace();
-        
-        if (conn != null) {
-            try { 
-            	conn.rollback(); 
-            } catch(Exception ex) {
-            	System.err.println("Rollback failed: " + ex.getMessage());
- 			}
-        }
+        try{if (conn != null) conn.rollback();} catch(Exception ignore) {}
         out.println("<script>alert('등록 중 오류 발생: " + e.getMessage() + "'); history.back();</script>");
     } finally {
-            try {
-                conn.setAutoCommit(true);
-            } catch (Exception ex) {
-                System.err.println("Failed to reset auto-commit: " + ex.getMessage());
-            }
-        if(rs!=null) rs.close(); if(pstmt!=null) pstmt.close(); if(conn!=null) conn.close();
-    }
+        try {conn.setAutoCommit(true);} catch (Exception ignore) {}
+        try { if (rs != null) rs.close(); } catch (Exception ignore) {}
+        try { if (pstmt != null) pstmt.close(); } catch (Exception ignore) {}
+        try { if (conn != null) conn.close(); } catch (Exception ignore) {}
+
+} catch (Exception ignore) {}    }
 %>

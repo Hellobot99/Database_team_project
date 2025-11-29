@@ -28,11 +28,9 @@
         out.println("</script>");
 
     } catch (Exception e) {
-        try {
-            if (conn != null) conn.rollback();
-        } catch (Exception rollbackEx) {
-            System.out.println("Rollback Error : " + rollbackEx.getMessage());
-        }
+    if (conn != null) {
+        try { conn.rollback(); } catch (Exception ignore) {}
+    }
         out.println("<script>");
         out.println("alert('이미 즐겨찾기한 경매입니다.');");
         out.println("location.href='auction_list.jsp';");
@@ -41,4 +39,5 @@
         if (ps != null) ps.close();
         if (conn != null) {conn.setAutoCommit(true); conn.close();}
     }
+
 %>
