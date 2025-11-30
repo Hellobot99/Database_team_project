@@ -136,7 +136,7 @@
                 %>
                     <div class="item-row">
                         <div class="item-info">
-                            <img src="images/<%= catName %>.png" class="item-img" onerror="this.src='images/default.png'">
+                            <img src="images/<%= catName %>.PNG" class="item-img" onerror="this.src='images/default.PNG'">
                             <div class="item-detail">
                                 <div class="item-name"><%= rs.getString("Name") %></div>
                                 <div class="item-meta">수량: <%= rs.getInt("Quantity") %>개 | 상태: <%= rs.getString("Conditions") %></div>
@@ -179,7 +179,7 @@
                 %>
                     <div class="item-row" style="border-left: 4px solid #ffc107;">
                         <div class="item-info">
-                            <img src="images/<%= catName %>.png" class="item-img" onerror="this.src='images/default.png'">
+                            <img src="images/<%= catName %>.PNG" class="item-img" onerror="this.src='images/default.PNG'">
                             <div class="item-detail">
                                 <div class="item-name"><%= rs.getString("Name") %></div>
                                 <div class="item-meta" style="color:#ff4444;">현재가: <%= df.format(rs.getInt("CurrentHighestPrice")) %> G</div>
