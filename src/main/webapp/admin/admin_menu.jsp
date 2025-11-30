@@ -172,8 +172,8 @@
                 <span>최소~최대 가격 사이의 매물을 조회 (BETWEEN)</span>
             </li>
             <li class="query-item">
-                <a href="admin_q4.jsp">Q4: 특정 날짜 이후 가입한 회원 조회</a>
-                <span>신규 가입자 현황 파악 (Date 비교)</span>
+                <a href="admin_q4.jsp">Q4: 사용자 인벤토리 검색</a>
+                <span>사용자 인벤토리 현황 파악</span>
             </li>
         </ul>
 

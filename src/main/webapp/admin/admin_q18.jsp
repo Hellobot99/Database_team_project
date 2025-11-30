@@ -2,109 +2,169 @@
 <%@ page language="java" import="java.sql.*" %>
 <%@ include file="admin_check.jsp" %>
 <%@ page language="java" import="TeamPrj.DBConnection" %>
+<%
+    request.setCharacterEncoding("UTF-8");
+    
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String categoryIdStr = request.getParameter("categoryId");
+        String rateStr = request.getParameter("rate");
+        
+        if(categoryIdStr != null && rateStr != null) {
+            int categoryId = Integer.parseInt(categoryIdStr);
+            double rate = Double.parseDouble(rateStr);
+            
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            
+            try {
+                conn = DBConnection.getConnection();
+                String sql = "UPDATE ITEM SET BasePrice = BasePrice * ? WHERE CategoryID = ?";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setDouble(1, rate);
+                pstmt.setInt(2, categoryId);
+                
+                int count = pstmt.executeUpdate();
+                out.println("<script>alert('총 " + count + "개 아이템의 가격이 조정되었습니다.'); location.href='admin_q18.jsp';</script>");
+            } catch(Exception e) {
+                out.println("<script>alert('오류 발생: " + e.getMessage() + "'); history.back();</script>");
+            } finally {
+                if(pstmt!=null) try{pstmt.close();}catch(Exception e){}
+                if(conn!=null) try{conn.close();}catch(Exception e){}
+            }
+            return;
+        }
+    }
+%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Q18: 카테고리별 평균 입찰가</title>
+<title>Q18: 물가 조정</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .container { max-width: 800px; margin: auto; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    .search-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; }
-    .form-row { margin-bottom: 10px; }
+    body { 
+        font-family: 'Pretendard', sans-serif; 
+        background-color: #121212; 
+        color: #e0e0e0; 
+        margin: 0; 
+        padding: 40px; 
+    }
+
+    .container { 
+        max-width: 600px; 
+        margin: 0 auto; 
+        background: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h2 { 
+        margin-top: 0;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #444;
+        padding-bottom: 15px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    
+    label { 
+        display: block; 
+        margin-bottom: 8px; 
+        font-weight: bold; 
+        color: #bbb;
+    }
+
+    select, input[type=number] { 
+        width: 100%; 
+        padding: 12px; 
+        border-radius: 6px; 
+        border: 1px solid #555; 
+        background-color: #2a2a2a; 
+        color: #fff;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+    input[type=submit] {
+        width: 100%;
+        padding: 14px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-top: 10px;
+        transition: background 0.2s;
+    }
+    input[type=submit]:hover { background-color: #218838; }
+
+    .back-btn {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        color: #888;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .back-btn:hover { color: #fff; text-decoration: underline; }
+    
+    .rate-info {
+        font-size: 0.85rem;
+        color: #ffcc00;
+        margin-top: 5px;
+        display: block;
+    }
 </style>
 </head>
 <body>
 <div class="container">
-<%
-    String catParam = request.getParameter("category_name");
-    String minAvgParam = request.getParameter("min_avg");
-
-    String searchCat = (catParam != null) ? catParam : "";
-    long minAvg = 0;
+    <h2>Q18: 물가 조정 (가격 일괄 변경)</h2>
     
-    if (minAvgParam != null && !minAvgParam.isEmpty()) {
-        try {
-            minAvg = Long.parseLong(minAvgParam);
-        } catch (NumberFormatException e) {}
-    }
-%>
-    <h2>Q18: 카테고리별 평균 입찰가 순위</h2>
+    <form action="admin_q18.jsp" method="post" onsubmit="return confirm('정말로 가격을 변경하시겠습니까?');">
+        
+        <div class="form-group">
+            <label>대상 카테고리</label>
+            <select name="categoryId">
+                <%
+                    Connection conn = null;
+                    Statement stmt = null;
+                    ResultSet rs = null;
+                    try {
+                        conn = DBConnection.getConnection();
+                        stmt = conn.createStatement();
+                        rs = stmt.executeQuery("SELECT CategoryID, Name FROM CATEGORY ORDER BY CategoryID");
+                        while(rs.next()) {
+                            out.println("<option value='" + rs.getInt("CategoryID") + "'>" + rs.getString("Name") + "</option>");
+                        }
+                    } catch(Exception e) {}
+                    finally { if(rs!=null) rs.close(); if(stmt!=null) stmt.close(); if(conn!=null) conn.close(); }
+                %>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>변동률 (Rate)</label>
+            <select name="rate">
+                <option value="1.1">10% 인상 (x 1.1)</option>
+                <option value="1.2">20% 인상 (x 1.2)</option>
+                <option value="1.5">50% 인상 (x 1.5)</option>
+                <option value="0.9">10% 인하 (x 0.9)</option>
+                <option value="0.8">20% 인하 (x 0.8)</option>
+                <option value="0.5">50% 인하 (x 0.5)</option>
+            </select>
+            <span class="rate-info">* 선택한 카테고리의 모든 아이템 기본 가격(BasePrice)이 변경됩니다.</span>
+        </div>
+        
+        <input type="submit" value="가격 변경 실행">
+    </form>
     
-    <div class="search-box">
-        <form action="admin_q18.jsp" method="get">
-            <div class="form-row">
-                카테고리명: 
-                <input type="text" name="category_name" value="<%=searchCat%>" placeholder="이름 포함 검색">
-            </div>
-            <div class="form-row">
-                평균 입찰가: 
-                <input type="number" name="min_avg" value="<%=minAvg%>" placeholder="0"> 원 이상
-                <input type="submit" value="조회">
-            </div>
-        </form>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Category ID</th>
-                <th>Category Name</th>
-                <th>Avg Bid Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-<%
-    Connection conn = null;
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
-
-    String sql = "SELECT C.CategoryID, C.Name AS CategoryName, ROUND(AVG(BR.BidAmount), 2) AS AvgBid "
-               + "FROM BIDDING_RECORD BR "
-               + "JOIN AUCTION A  ON A.AuctionID = BR.AuctionID "
-               + "JOIN ITEM I     ON I.ItemID = A.ItemID "
-               + "JOIN CATEGORY C ON C.CategoryID = I.CategoryID "
-               + "WHERE C.Name LIKE ? "
-               + "GROUP BY C.CategoryID, C.Name "
-               + "HAVING AVG(BR.BidAmount) >= ? "
-               + "ORDER BY AvgBid DESC";
-
-    try {
-        conn = DBConnection.getConnection();
-        pstmt = conn.prepareStatement(sql);
-        
-        pstmt.setString(1, "%" + searchCat + "%");
-        pstmt.setLong(2, minAvg);
-        
-        rs = pstmt.executeQuery();
-        
-        int rank = 1;
-        while(rs.next()) {
-%>
-            <tr>
-                <td><%= rank++ %></td>
-                <td><%= rs.getString("CategoryID") %></td>
-                <td><%= rs.getString("CategoryName") %></td>
-                <td><%= rs.getDouble("AvgBid") %></td>
-            </tr>
-<%
-        }
-    } catch (Exception e) {
-        out.println("<tr><td colspan='4'>DB 오류: " + e.getMessage() + "</td></tr>");
-    } finally {
-        if(rs != null) try { rs.close(); } catch(Exception e){}
-        if(pstmt != null) try { pstmt.close(); } catch(Exception e){}
-        if(conn != null) try { conn.close(); } catch(Exception e){}
-    }
-%>
-        </tbody>
-    </table>
-    <br>
-    <a href="admin_menu.jsp">관리자 메뉴로 돌아가기</a>
+    <a href="admin_menu.jsp" class="back-btn">관리자 메뉴로 돌아가기</a>
 </div>
 </body>
 </html>

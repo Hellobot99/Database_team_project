@@ -1,10 +1,36 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, TeamPrj.DBConnection, java.text.DecimalFormat" %>
 <%
     String headerUserId = (String) session.getAttribute("userId");
     String headerUserTier = (String) session.getAttribute("userTier");
     
     if (headerUserId == null) headerUserId = "GUEST";
     if (headerUserTier == null) headerUserTier = "Visitor";
+
+    long headerUserBalance = 0;
+    DecimalFormat headerDf = new DecimalFormat("#,###");
+
+    if (!"GUEST".equals(headerUserId)) {
+        Connection headerConn = null;
+        PreparedStatement headerPstmt = null;
+        ResultSet headerRs = null;
+        try {
+            headerConn = DBConnection.getConnection();
+            String headerSql = "SELECT Balance FROM USERS WHERE UserID = ?";
+            headerPstmt = headerConn.prepareStatement(headerSql);
+            headerPstmt.setString(1, headerUserId);
+            headerRs = headerPstmt.executeQuery();
+            if (headerRs.next()) {
+                headerUserBalance = headerRs.getLong("Balance");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (headerRs != null) try { headerRs.close(); } catch (Exception e) {}
+            if (headerPstmt != null) try { headerPstmt.close(); } catch (Exception e) {}
+            if (headerConn != null) try { headerConn.close(); } catch (Exception e) {}
+        }
+    }
 %>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
@@ -39,13 +65,19 @@
         gap: 20px;
         color: #e0e0e0;
     }
-    .gh-user-info { font-weight: bold; font-size: 1rem; }
+    .gh-user-info { font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+    
+    .gh-gold-text {
+        color: #28a745;
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
     .gh-tier-badge { 
         color: #ffcc00; 
         background: rgba(255, 204, 0, 0.1); 
         padding: 2px 8px; 
         border-radius: 4px; 
-        margin-left: 5px; 
         font-size: 0.9rem; 
     }
     
@@ -69,7 +101,9 @@
     <div class="gh-user-area">
         <% if (!"GUEST".equals(headerUserId)) { %>
             <div class="gh-user-info">
-                👤 <%= headerUserId %>
+                <span class="gh-gold-text">💰 <%= headerDf.format(headerUserBalance) %> G</span>
+                <span>|</span>
+                <span>👤 <%= headerUserId %></span>
                 <span class="gh-tier-badge"><%= headerUserTier %></span>
             </div>
             <a href="<%= request.getContextPath() %>/logoutAction.jsp" class="gh-logout-btn">로그아웃</a>

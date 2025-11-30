@@ -10,8 +10,8 @@
 <style>
     body { 
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-        background-color: #ffffff; 
-        color: #333; 
+        background-color: #121212; 
+        color: #e0e0e0; 
         margin: 0; 
         padding: 40px; 
     }
@@ -21,11 +21,12 @@
     .header-title { 
         font-size: 2rem; 
         font-weight: 800; 
-        color: #111; 
-        border-bottom: 3px solid #000; 
+        color: #fff; 
+        border-bottom: 3px solid #333; 
         padding-bottom: 20px; 
         margin-bottom: 40px; 
         letter-spacing: -1px;
+        text-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
     .top-layout {
@@ -36,11 +37,11 @@
     }
 
     .card {
-        background: #fff;
-        border: 1px solid #e1e1e1;
+        background: #1e1e1e;
+        border: 1px solid #333;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
 
     .card h3 {
@@ -48,30 +49,31 @@
         margin-bottom: 20px;
         font-size: 1.2rem;
         color: #007bff;
-        border-bottom: 1px solid #f1f1f1;
+        border-bottom: 1px solid #444;
         padding-bottom: 10px;
     }
 
     .form-group { margin-bottom: 15px; }
     
-    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
     
     input[type=text], input[type=password], input[type=number] {
         width: 100%;
         padding: 10px;
-        border: 1px solid #ddd;
+        border: 1px solid #444;
         border-radius: 6px;
         font-size: 0.95rem;
         box-sizing: border-box;
-        background-color: #f8f9fa;
+        background-color: #2a2a2a;
+        color: #fff;
     }
     
     input[type=text]:focus, input[type=password]:focus {
-        outline: none; border-color: #007bff; background-color: #fff;
+        outline: none; border-color: #007bff;
     }
 
     input[type=submit] {
-        background-color: #333;
+        background: #007bff;
         color: white;
         border: none;
         padding: 12px;
@@ -82,33 +84,34 @@
         font-size: 1rem;
         transition: background 0.2s;
     }
-    input[type=submit]:hover { background-color: #555; }
+    input[type=submit]:hover { background-color: #0056b3; }
 
     .table-container {
-        border: 1px solid #e1e1e1;
+        border: 1px solid #333;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        background: #1e1e1e;
     }
 
-    table { width: 100%; border-collapse: collapse; background: #fff; }
+    table { width: 100%; border-collapse: collapse; }
     
     th {
-        background-color: #f1f3f5;
-        color: #333;
+        background-color: #252525;
+        color: #bbb;
         font-weight: bold;
         padding: 15px;
         text-align: left;
-        border-bottom: 2px solid #ddd;
+        border-bottom: 2px solid #444;
     }
     
     td {
         padding: 15px;
-        border-bottom: 1px solid #eee;
-        color: #555;
+        border-bottom: 1px solid #333;
+        color: #e0e0e0;
     }
     
-    tr:hover { background-color: #f8f9fa; }
+    tr:hover { background-color: #2a2a2a; }
 
     .btn-action {
         display: inline-block;
@@ -121,24 +124,24 @@
         transition: background 0.2s;
     }
 
-    .btn-edit { background-color: #e7f5ff; color: #007bff; }
-    .btn-edit:hover { background-color: #d0ebff; }
+    .btn-edit { background-color: #007bff; color: white; }
+    .btn-edit:hover { background-color: #0056b3; }
     
-    .btn-delete { background-color: #fff5f5; color: #dc3545; }
-    .btn-delete:hover { background-color: #ffe3e3; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-delete:hover { background-color: #c82333; }
 
     .back-btn {
         display: inline-block;
         margin-top: 30px;
         padding: 10px 20px;
-        background-color: #f1f3f5;
-        color: #333;
+        background-color: #333;
+        color: #ccc;
         text-decoration: none;
         border-radius: 50px;
         font-weight: bold;
         transition: background 0.2s;
     }
-    .back-btn:hover { background-color: #e9ecef; }
+    .back-btn:hover { background-color: #444; color: #fff; }
 </style>
 </head>
 <body>
@@ -177,12 +180,12 @@
                     <label>검색어 (ID 또는 이름)</label>
                     <input type="text" name="search_query" value="${param.search_query}" placeholder="검색어를 입력하세요...">
                 </div>
-                <input type="submit" value="검색" style="background-color: #007bff;">
+                <input type="submit" value="검색" style="background-color: #28a745;">
             </form>
         </div>
     </div>
 
-    <h3 style="margin-bottom: 15px; color: #333;">📋 사용자 목록</h3>
+    <h3 style="margin-bottom: 15px; color: #ffcc00;">📋 사용자 목록</h3>
     <div class="table-container">
         <table>
             <thead>
@@ -222,9 +225,9 @@
         while(rs.next()) {
 %>
             <tr>
-                <td style="font-weight:bold; color:#333;"><%= rs.getString("UserID") %></td>
+                <td style="font-weight:bold; color:#fff;"><%= rs.getString("UserID") %></td>
                 <td><%= rs.getString("Name") %></td>
-                <td><span style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.8rem;"><%= rs.getString("Tier") %></span></td>
+                <td><span style="background:#444; color:#ccc; padding:2px 6px; border-radius:4px; font-size:0.8rem;"><%= rs.getString("Tier") %></span></td>
                 <td style="color:#28a745;"><%= rs.getLong("Balance") %> G</td>
                 <td>
                     <a href="admin_user_update_form.jsp?userID=<%= rs.getString("UserID") %>" class="btn-action btn-edit">수정</a>

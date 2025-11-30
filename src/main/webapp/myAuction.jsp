@@ -159,10 +159,11 @@
             try {
                 conn = DBConnection.getConnection();
                 
-                String sqlBid = "SELECT DISTINCT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime " +
+                String sqlBid = "SELECT DISTINCT a.AuctionID, i.Name, c.Name AS CategoryName, a.CurrentHighestPrice, a.EndTime " +
                                 "FROM BIDDING_RECORD b " +
                                 "JOIN AUCTION a ON b.AuctionID = a.AuctionID " +
                                 "JOIN ITEM i ON a.ItemID = i.ItemID " +
+                                "LEFT JOIN CATEGORY c ON i.CategoryID = c.CategoryID " +
                                 "WHERE b.BidderID = ? AND a.EndTime > SYSDATE " +
                                 "ORDER BY a.EndTime ASC";
                 
@@ -175,14 +176,17 @@
                     hasBidItems = true;
                     int auctionId = rs.getInt(1);
                     String name = rs.getString(2);
-                    int price = rs.getInt(3);
-                    Timestamp endTime = rs.getTimestamp(4);
+                    String categoryName = rs.getString("CategoryName");
+                    if(categoryName == null) categoryName = "기타";
+
+                    int price = rs.getInt(4);
+                    Timestamp endTime = rs.getTimestamp(5);
                     long endTimeMillis = endTime.getTime();
         %>
             <div class="item-card" style="border-color: #007bff;"> 
                 <div style="position:absolute; top:10px; right:10px; background:#007bff; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">참여중</div>
                 
-                <img src="images/<%= name %>.png" class="item-img" onerror="this.src='https://via.placeholder.com/200x140/333/fff?text=Item'">
+                <img src="images/<%= categoryName %>.png" class="item-img" onerror="this.src='images/default.png'">
                 <div class="item-name"><%= name %></div>
                 <div class="item-price"><%= formatter.format(price) %> G</div>
                 <div class="time-box" data-end="<%= endTimeMillis %>">계산 중...</div>
@@ -206,10 +210,11 @@
         <h2 style="border-color: #ff4444;">⭐ 관심 경매 (지켜보는 중)</h2>
         <div class="auction-grid">
         <%
-                String sqlFav = "SELECT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime " +
+                String sqlFav = "SELECT a.AuctionID, i.Name, c.Name AS CategoryName, a.CurrentHighestPrice, a.EndTime " +
                                 "FROM FAVORITE f " +
                                 "JOIN AUCTION a ON f.AuctionID = a.AuctionID " +
                                 "JOIN ITEM i ON a.ItemID = i.ItemID " +
+                                "LEFT JOIN CATEGORY c ON i.CategoryID = c.CategoryID " +
                                 "WHERE f.UserID = ? AND a.EndTime > SYSDATE " +
                                 "ORDER BY f.AddedTime DESC";
                 
@@ -222,12 +227,15 @@
                     hasFavItems = true;
                     int auctionId = rs.getInt(1);
                     String name = rs.getString(2);
-                    int price = rs.getInt(3);
-                    Timestamp endTime = rs.getTimestamp(4);
+                    String categoryName = rs.getString("CategoryName");
+                    if(categoryName == null) categoryName = "기타";
+                    
+                    int price = rs.getInt(4);
+                    Timestamp endTime = rs.getTimestamp(5);
                     long endTimeMillis = endTime.getTime();
         %>
             <div class="item-card">
-                <img src="images/<%= name %>.png" class="item-img" onerror="this.src='https://via.placeholder.com/200x140/333/fff?text=Item'">
+                <img src="images/<%= categoryName %>.png" class="item-img" onerror="this.src='images/default.png'">
                 <div class="item-name"><%= name %></div>
                 <div class="item-price"><%= formatter.format(price) %> G</div>
                 <div class="time-box" data-end="<%= endTimeMillis %>">계산 중...</div>
@@ -257,7 +265,7 @@
         </div>
 
         <div style="text-align:center;">
-            <a href="index.jsp" class="home-btn">로비로 돌아가기</a>
+            <a href="index.jsp" class="home-btn">🏠 로비로 돌아가기</a>
         </div>
     </div>
 </div>

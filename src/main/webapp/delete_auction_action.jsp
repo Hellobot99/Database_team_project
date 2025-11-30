@@ -33,6 +33,7 @@
         rs = psSel.executeQuery();
 
         if (!rs.next()) {
+
             out.println("<script>alert('존재하지 않는 경매입니다.'); history.back();</script>");
             return;
         }

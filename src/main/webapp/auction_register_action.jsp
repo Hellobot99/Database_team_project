@@ -27,8 +27,9 @@
         // 존재하지 않는 경우
         if (updated == 0){
             conn.rollback();
-            out.println("<script>alert('아이템 수량이 부족합니다.'); history.back();</script>");
+            out.println("<script>alert('아이템이 존재하지 않습니다.'); history.back();</script>");
             return;
+
         }
 
         String sqlInsert = "INSERT INTO AUCTION (AUCTIONID, START_PRICE, STARTTIME, ENDTIME, CURRENTHIGHESTPRICE, ITEMID, SELLERID, REGISTERINVENTORYID) " +
@@ -43,18 +44,7 @@
         pstmt.setInt(6, invenId);
         pstmt.executeUpdate();
         pstmt.close();
-        
-        String sqlDeleteZero =
-            "DELETE FROM INVENTORY " +
-            " WHERE InventoryID = ? " +
-            "   AND UserID = ? " +
-            "   AND Quantity = 0";
-
-        pstmt = conn.prepareStatement(sqlDeleteZero);
-        pstmt.setInt(1, invenId);
-        pstmt.setString(2, userId);
-        pstmt.executeUpdate();
-        pstmt.close();
+    
 
         conn.commit();
 

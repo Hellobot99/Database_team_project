@@ -190,7 +190,7 @@
             try {
                 conn = DBConnection.getConnection();
                 
-                String sql = "SELECT a.AuctionID, i.Name AS ITEM_NAME, a.CurrentHighestPrice, a.EndTime " +
+                String sql = "SELECT a.AuctionID, i.Name AS ITEM_NAME, c.Name AS CategoryName, a.CurrentHighestPrice, a.EndTime " +
                              "FROM AUCTION a " + 
                              "JOIN ITEM i ON a.ItemID = i.ItemID " +
                              "LEFT JOIN CATEGORY c ON i.CategoryID = c.CategoryID " + 
@@ -198,7 +198,6 @@
 
                 if (!searchItem.isEmpty()) sql += "AND UPPER(i.Name) LIKE UPPER(?) ";
                 if (!searchCategory.isEmpty()) sql += "AND UPPER(c.Name) LIKE UPPER(?) ";
-                
                 if (!minPriceStr.isEmpty()) sql += "AND a.CurrentHighestPrice >= ? ";
                 if (!maxPriceStr.isEmpty()) sql += "AND a.CurrentHighestPrice <= ? ";
                 
@@ -219,15 +218,20 @@
                     hasData = true;
                     int auctionId = rs.getInt("AuctionID");
                     String itemName = rs.getString("ITEM_NAME");
+                    String categoryName = rs.getString("CategoryName");
+                    if(categoryName == null) categoryName = "기타";
+
                     int currentPrice = rs.getInt("CurrentHighestPrice");
                     Timestamp endTime = rs.getTimestamp("EndTime");
                     long endTimeMillis = endTime.getTime();
         %>
 
             <div class="item-card">
-                <img src="images/<%= itemName %>.png" class="item-img" alt="<%= itemName %>" onerror="this.src='https://via.placeholder.com/200x160/000000/FFFFFF?text=Item+Image'">
+                <img src="images/<%= categoryName %>.png" class="item-img" alt="<%= categoryName %>" onerror="this.src='images/default.png'">
                 
                 <h3><%= itemName %></h3>
+                
+                <div style="color:#888; font-size:0.9rem; margin-bottom:5px;"><%= categoryName %></div>
                 
                 <div class="price"><%= formatter.format(currentPrice) %> G</div>
                 

@@ -6,32 +6,125 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Q5: 경매 통계 검색</title>
+<title>Q5: 물품 및 판매자 상세 조회</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .container { max-width: 800px; margin: auto; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    .search-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; }
-    .form-row { margin-bottom: 10px; }
+    body { 
+        font-family: 'Pretendard', sans-serif; 
+        background-color: #121212; 
+        color: #e0e0e0; 
+        margin: 0; 
+        padding: 40px; 
+    }
+
+    .container { 
+        max-width: 1000px; 
+        margin: 0 auto; 
+        background: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h2 { 
+        margin-top: 0;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #444;
+        padding-bottom: 15px;
+    }
+
+    .search-box {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 20px;
+        border: 1px solid #444;
+    }
+
+    input[type=text] { 
+        padding: 10px; 
+        border-radius: 6px; 
+        border: 1px solid #555; 
+        background-color: #1a1a1a; 
+        color: #fff;
+        font-size: 1rem;
+        width: 250px;
+        margin-right: 10px;
+    }
+
+    input[type=submit] {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+    input[type=submit]:hover { background-color: #0056b3; }
+
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 20px; 
+        background-color: #252525;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    th { 
+        background-color: #333; 
+        color: #bbb; 
+        padding: 12px; 
+        text-align: center; 
+        border-bottom: 2px solid #444;
+    }
+    
+    td { 
+        padding: 12px; 
+        border-bottom: 1px solid #333; 
+        color: #e0e0e0; 
+        text-align: center;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #2a2a2a; }
+
+    .back-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto 0;
+        padding: 12px;
+        background-color: #444;
+        color: #ccc;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: background 0.2s;
+    }
+    .back-btn:hover { background-color: #555; color: #fff; }
 </style>
 </head>
 <body>
 <div class="container">
 <%
-    String auctionIdParam = request.getParameter("auction_id");
-    String searchAuctionId = (auctionIdParam != null) ? auctionIdParam : "";
+    String itemNameParam = request.getParameter("item_name");
+    String searchItemName = (itemNameParam != null) ? itemNameParam : "";
 %>
-    <h2>Q5: 경매별 통계 검색</h2>
+    <h2>Q5: 물품별 판매자 정보 상세 조회</h2>
     
     <div class="search-box">
         <form action="admin_q5.jsp" method="get">
-            <div class="form-row">
-                Auction ID: 
-                <input type="text" name="auction_id" value="<%=searchAuctionId%>" placeholder="ID 포함 검색">
-                <input type="submit" value="검색">
-            </div>
+            아이템 이름: 
+            <input type="text" name="item_name" value="<%=searchItemName%>" placeholder="이름 포함 검색">
+            <input type="submit" value="검색">
         </form>
     </div>
 
@@ -39,8 +132,10 @@
         <thead>
             <tr>
                 <th>Auction ID</th>
-                <th>Bid Count</th>
-                <th>Max Bid</th>
+                <th>Item Name</th>
+                <th>Seller ID</th>
+                <th>Seller Name</th>
+                <th>Current Price</th>
             </tr>
         </thead>
         <tbody>
@@ -49,16 +144,17 @@
     PreparedStatement pstmt = null;
     ResultSet rs = null;
 
-    String sql = "SELECT A.AuctionID, COUNT(*) AS BidCount, MAX(BR.BidAmount) AS MaxBid "
+    String sql = "SELECT A.AuctionID, I.Name AS ItemName, U.UserID AS SellerID, U.Name AS SellerName, A.CurrentHighestPrice "
                + "FROM AUCTION A "
-               + "JOIN BIDDING_RECORD BR ON BR.AuctionID = A.AuctionID "
-               + "WHERE A.AuctionID LIKE ? "
-               + "GROUP BY A.AuctionID";
+               + "JOIN ITEM I ON A.ItemID = I.ItemID "
+               + "JOIN USERS U ON A.SellerID = U.UserID "
+               + "WHERE I.Name LIKE ? "
+               + "ORDER BY A.AuctionID DESC";
 
     try {
         conn = DBConnection.getConnection();
         pstmt = conn.prepareStatement(sql);
-        pstmt.setString(1, "%" + searchAuctionId + "%");
+        pstmt.setString(1, "%" + searchItemName + "%");
         
         rs = pstmt.executeQuery();
         
@@ -66,13 +162,15 @@
 %>
             <tr>
                 <td><%= rs.getString("AuctionID") %></td>
-                <td><%= rs.getInt("BidCount") %></td>
-                <td><%= rs.getLong("MaxBid") %></td>
+                <td style="font-weight:bold; color:#fff;"><%= rs.getString("ItemName") %></td>
+                <td><%= rs.getString("SellerID") %></td>
+                <td><%= rs.getString("SellerName") %></td>
+                <td style="color:#28a745; font-weight:bold;"><%= rs.getLong("CurrentHighestPrice") %> G</td>
             </tr>
 <%
         }
     } catch (Exception e) {
-        out.println("<tr><td colspan='3'>DB 오류: " + e.getMessage() + "</td></tr>");
+        out.println("<tr><td colspan='5' style='color:red;'>DB 오류: " + e.getMessage() + "</td></tr>");
     } finally {
         if(rs != null) try { rs.close(); } catch(Exception e){}
         if(pstmt != null) try { pstmt.close(); } catch(Exception e){}
@@ -81,8 +179,8 @@
 %>
         </tbody>
     </table>
-    <br>
-    <a href="admin_menu.jsp">관리자 메뉴로 돌아가기</a>
+    
+    <a href="admin_menu.jsp" class="back-btn">관리자 메뉴로 돌아가기</a>
 </div>
 </body>
 </html>

@@ -6,28 +6,124 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Q7: 카테고리 평균 이상 아이템</title>
+<title>Q7: 모든 입찰 기록 조회</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .container { max-width: 800px; margin: auto; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    .search-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; }
+    body { 
+        font-family: 'Pretendard', sans-serif; 
+        background-color: #121212; 
+        color: #e0e0e0; 
+        margin: 0; 
+        padding: 40px; 
+    }
+
+    .container { 
+        max-width: 1000px; 
+        margin: 0 auto; 
+        background: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h2 { 
+        margin-top: 0;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #444;
+        padding-bottom: 15px;
+    }
+
+    .search-box {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 20px;
+        border: 1px solid #444;
+    }
+
+    input[type=text] { 
+        padding: 10px; 
+        border-radius: 6px; 
+        border: 1px solid #555; 
+        background-color: #1a1a1a; 
+        color: #fff;
+        font-size: 1rem;
+        width: 250px;
+        margin-right: 10px;
+    }
+
+    input[type=submit] {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+    input[type=submit]:hover { background-color: #0056b3; }
+
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 20px; 
+        background-color: #252525;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    th { 
+        background-color: #333; 
+        color: #bbb; 
+        padding: 12px; 
+        text-align: center; 
+        border-bottom: 2px solid #444;
+    }
+    
+    td { 
+        padding: 12px; 
+        border-bottom: 1px solid #333; 
+        color: #e0e0e0; 
+        text-align: center;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #2a2a2a; }
+
+    .back-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto 0;
+        padding: 12px;
+        background-color: #444;
+        color: #ccc;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: background 0.2s;
+    }
+    .back-btn:hover { background-color: #555; color: #fff; }
 </style>
 </head>
 <body>
 <div class="container">
 <%
-    String categoryParam = request.getParameter("category_name");
-    String searchCategory = (categoryParam != null) ? categoryParam : "";
+    String bidderParam = request.getParameter("bidder_name");
+    String searchBidder = (bidderParam != null) ? bidderParam : "";
 %>
-    <h2>Q7: 카테고리 평균가보다 비싼 아이템</h2>
+    <h2>Q7: 모든 입찰 기록과 입찰자명 조회 (3중 조인)</h2>
     
     <div class="search-box">
         <form action="admin_q7.jsp" method="get">
-            카테고리 명: 
-            <input type="text" name="category_name" value="<%=searchCategory%>" placeholder="카테고리 이름 입력">
+            입찰자 이름: 
+            <input type="text" name="bidder_name" value="<%=searchBidder%>" placeholder="이름 포함 검색">
             <input type="submit" value="검색">
         </form>
     </div>
@@ -35,9 +131,11 @@
     <table>
         <thead>
             <tr>
-                <th>Item ID</th>
+                <th>Auction ID</th>
                 <th>Item Name</th>
-                <th>Base Price</th>
+                <th>Bidder Name</th>
+                <th>Bid Amount</th>
+                <th>Bid Time</th>
             </tr>
         </thead>
         <tbody>
@@ -46,34 +144,34 @@
     PreparedStatement pstmt = null;
     ResultSet rs = null;
 
-    String sql = "SELECT I.ItemID, I.Name, I.BasePrice "
-               + "FROM ITEM I "
-               + "JOIN CATEGORY C ON I.CategoryID = C.CategoryID "
-               + "WHERE C.Name LIKE ? "
-               + "  AND I.BasePrice > ("
-               + "      SELECT AVG(I2.BasePrice) "
-               + "      FROM ITEM I2 "
-               + "      WHERE I2.CategoryID = I.CategoryID"
-               + "  )";
+    String sql = "SELECT A.AuctionID, I.Name AS ItemName, U.Name AS BidderName, B.BidAmount, B.BidTime "
+               + "FROM BIDDING_RECORD B "
+               + "JOIN USERS U ON B.BidderID = U.UserID "
+               + "JOIN AUCTION A ON B.AuctionID = A.AuctionID "
+               + "JOIN ITEM I ON A.ItemID = I.ItemID "
+               + "WHERE U.Name LIKE ? "
+               + "ORDER BY B.BidTime DESC";
 
     try {
         conn = DBConnection.getConnection();
         pstmt = conn.prepareStatement(sql);
-        pstmt.setString(1, "%" + searchCategory + "%");
+        pstmt.setString(1, "%" + searchBidder + "%");
         
         rs = pstmt.executeQuery();
         
         while(rs.next()) {
 %>
             <tr>
-                <td><%= rs.getString("ItemID") %></td>
-                <td><%= rs.getString("Name") %></td>
-                <td><%= rs.getLong("BasePrice") %></td>
+                <td><%= rs.getInt("AuctionID") %></td>
+                <td><%= rs.getString("ItemName") %></td>
+                <td style="font-weight:bold; color:#fff;"><%= rs.getString("BidderName") %></td>
+                <td style="color:#28a745;"><%= rs.getLong("BidAmount") %> G</td>
+                <td style="color:#aaa; font-size:0.9rem;"><%= rs.getTimestamp("BidTime") %></td>
             </tr>
 <%
         }
     } catch (Exception e) {
-        out.println("<tr><td colspan='3'>DB 오류: " + e.getMessage() + "</td></tr>");
+        out.println("<tr><td colspan='5' style='color:red;'>DB 오류: " + e.getMessage() + "</td></tr>");
     } finally {
         if(rs != null) try { rs.close(); } catch(Exception e){}
         if(pstmt != null) try { pstmt.close(); } catch(Exception e){}
@@ -82,8 +180,8 @@
 %>
         </tbody>
     </table>
-    <br>
-    <a href="admin_menu.jsp">관리자 메뉴로 돌아가기</a>
+    
+    <a href="admin_menu.jsp" class="back-btn">관리자 메뉴로 돌아가기</a>
 </div>
 </body>
 </html>

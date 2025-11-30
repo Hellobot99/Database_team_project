@@ -87,7 +87,7 @@
         </div>
         
         <div class="sub-menu">
-            <a href="my_history.jsp" class="sub-link" style="color:#ffcc00;">📜 나의 거래 내역</a> | 
+            <a href="my_history.jsp" class="sub-link" style="color:#ffcc00;">나의 거래 내역</a> | 
             <a href="myAuction.jsp" class="sub-link">참여 중인 경매</a> |
             <a href="myProfile.jsp" class="sub-link">내 정보</a>
             <% if ("ADMIN".equals(userTier)) { %> | <a href="admin/admin_menu.jsp" class="sub-link" style="color:#28a745;">관리자</a> <% } %>
