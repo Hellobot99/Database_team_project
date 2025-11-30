@@ -110,8 +110,10 @@
                 try {
                     conn = DBConnection.getConnection();
                     
-                    String sqlInven = "SELECT v.InventoryID, i.ItemID, i.Name, v.Quantity, v.Conditions " +
-                                      "FROM INVENTORY v JOIN ITEM i ON v.ItemID = i.ItemID " +
+                    String sqlInven = "SELECT v.InventoryID, i.ItemID, i.Name, v.Quantity, v.Conditions, c.Name AS CategoryName " +
+                                      "FROM INVENTORY v " + 
+                                      "JOIN ITEM i ON v.ItemID = i.ItemID " +
+                                      "LEFT JOIN CATEGORY c ON i.CategoryID = c.CategoryID " + 
                                       "WHERE v.UserID = ? AND v.Quantity > 0 ";
                                       
                     if(!searchKeyword.isEmpty()) {
@@ -129,17 +131,19 @@
                     boolean hasInven = false;
                     while(rs.next()) {
                         hasInven = true;
+                        String catName = rs.getString("CategoryName");
+                        if(catName == null) catName = "기타";
                 %>
                     <div class="item-row">
                         <div class="item-info">
-                            <img src="images/<%= rs.getString("Name") %>.png" class="item-img" onerror="this.src='https://via.placeholder.com/50?text=IMG'">
+                            <img src="images/<%= catName %>.png" class="item-img" onerror="this.src='images/default.png'">
                             <div class="item-detail">
                                 <div class="item-name"><%= rs.getString("Name") %></div>
                                 <div class="item-meta">수량: <%= rs.getInt("Quantity") %>개 | 상태: <%= rs.getString("Conditions") %></div>
                             </div>
                         </div>
                         <a href="auction_register.jsp?invenId=<%= rs.getInt("InventoryID") %>&itemId=<%= rs.getInt("ItemID") %>&name=<%= rs.getString("Name") %>" class="btn btn-register">
-                            등록
+                            ⬆️ 등록
                         </a>
                     </div>
                 <%
@@ -157,8 +161,10 @@
             
             <div class="scroll-area">
                 <%
-                    String sqlAuc = "SELECT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime " +
-                                    "FROM AUCTION a JOIN ITEM i ON a.ItemID = i.ItemID " +
+                    String sqlAuc = "SELECT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime, c.Name AS CategoryName " +
+                                    "FROM AUCTION a " +
+                                    "JOIN ITEM i ON a.ItemID = i.ItemID " +
+                                    "LEFT JOIN CATEGORY c ON i.CategoryID = c.CategoryID " +
                                     "WHERE a.SellerID = ? AND a.EndTime > SYSDATE " +
                                     "ORDER BY a.EndTime ASC";
                     pstmt = conn.prepareStatement(sqlAuc);
@@ -168,10 +174,12 @@
                     boolean hasAuc = false;
                     while(rs.next()) {
                         hasAuc = true;
+                        String catName = rs.getString("CategoryName");
+                        if(catName == null) catName = "기타";
                 %>
                     <div class="item-row" style="border-left: 4px solid #ffc107;">
                         <div class="item-info">
-                            <img src="images/<%= rs.getString("Name") %>.png" class="item-img" onerror="this.src='https://via.placeholder.com/50?text=IMG'">
+                            <img src="images/<%= catName %>.png" class="item-img" onerror="this.src='images/default.png'">
                             <div class="item-detail">
                                 <div class="item-name"><%= rs.getString("Name") %></div>
                                 <div class="item-meta" style="color:#ff4444;">현재가: <%= df.format(rs.getInt("CurrentHighestPrice")) %> G</div>
@@ -197,7 +205,7 @@
         </div>
     </div>
     
-    <a href="index.jsp" class="home-btn">로비로 돌아가기</a>
+    <a href="index.jsp" class="home-btn">🏠 로비로 돌아가기</a>
 </div>
 
 </body>

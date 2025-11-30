@@ -9,7 +9,8 @@
 <style>
     body { 
         font-family: 'Pretendard', sans-serif; 
-        background: #fcfcfc;
+        background: #121212;
+        color: #e0e0e0;
         padding: 40px; 
         display: flex; 
         justify-content: center; 
@@ -19,38 +20,38 @@
     }
 
     .manage-card { 
-        background: #fff; 
+        background: #1e1e1e; 
         width: 100%; 
         max-width: 500px; 
         padding: 40px; 
         border-radius: 16px; 
-        border: 1px solid #e1e1e1; 
+        border: 1px solid #333; 
         border-top: 5px solid #ffc107;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
     }
 
-    h2 { margin: 0 0 30px 0; text-align: center; color: #111; font-weight: 800; }
+    h2 { margin: 0 0 30px 0; text-align: center; color: #fff; font-weight: 800; }
     
-    label { display: block; margin-bottom: 8px; font-weight: 700; color: #555; font-size: 0.95rem; }
+    label { display: block; margin-bottom: 8px; font-weight: 700; color: #aaa; font-size: 0.95rem; }
 
     input[type=text], input[type=number], select { 
         width: 100%; 
         padding: 12px 15px;
         margin-bottom: 20px; 
-        border: 1px solid #ddd; 
+        border: 1px solid #444; 
         border-radius: 8px; 
         font-size: 1rem;
         box-sizing: border-box; 
-        background-color: #f9f9f9;
+        background-color: #2a2a2a;
         transition: all 0.2s;
-        color: #333;
+        color: #fff;
         font-family: 'Pretendard', sans-serif;
     }
 
     input:focus, select:focus {
         outline: none;
         border-color: #ffc107;
-        background-color: #fff;
+        background-color: #333;
         box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
     }
 
@@ -59,7 +60,7 @@
         -moz-appearance: none;
         appearance: none;
         cursor: pointer;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bbb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
         background-repeat: no-repeat;
         background-position: right 15px center;
         background-size: 16px;
@@ -68,8 +69,8 @@
     .submit-btn { 
         width: 100%; 
         padding: 15px; 
-        background: #333; 
-        color: white; 
+        background: #ffc107; 
+        color: #000; 
         border: none; 
         border-radius: 8px; 
         font-weight: bold; 
@@ -78,23 +79,31 @@
         margin-top: 10px;
         transition: background 0.2s;
     }
-    .submit-btn:hover { background: #555; }
+    .submit-btn:hover { background: #ffaa00; }
 
-    .radio-group { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; background: #f1f3f5; padding: 10px; border-radius: 10px; }
-    .radio-option { font-weight: bold; display: flex; align-items: center; cursor: pointer; }
+    .radio-group { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; background: #252525; padding: 10px; border-radius: 10px; border: 1px solid #333; }
+    .radio-option { font-weight: bold; display: flex; align-items: center; cursor: pointer; color: #ccc; }
     .radio-option input { margin-right: 8px; transform: scale(1.2); cursor: pointer; }
     .give-opt { color: #28a745; } 
     .take-opt { color: #dc3545; }
 
-    .back-link {
+    .back-btn {
         display: block; 
-        text-align: center; 
-        margin-top: 25px; 
-        color: #888; 
-        text-decoration: none; 
-        font-size: 0.9rem;
+        width: 100%;
+        padding: 15px; 
+        background: #333;
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid #444;
+        border-radius: 8px; 
+        font-weight: bold; 
+        font-size: 1.1rem;
+        margin-top: 15px;
+        box-sizing: border-box;
+        transition: background 0.2s;
     }
-    .back-link:hover { color: #333; text-decoration: underline; }
+    .back-btn:hover { background: #444; border-color: #666; }
 </style>
 </head>
 <body>
@@ -134,7 +143,7 @@
         <button type="submit" class="submit-btn">실행하기</button>
     </form>
     
-    <a href="admin_menu.jsp" class="back-link">↩ 관리자 메뉴로 돌아가기</a>
+    <a href="admin_menu.jsp" class="back-btn">↩ 관리자 메뉴로 돌아가기</a>
 </div>
 
 </body>

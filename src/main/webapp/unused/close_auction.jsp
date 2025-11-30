@@ -47,7 +47,6 @@ if (userId == null) {
 		checkRs.close();
 		checkStmt.close();
 
-		// 1️⃣ AuctionID → ItemID 가져오기
 		PreparedStatement getItem = conn.prepareStatement("SELECT ItemID, SellerID FROM AUCTION WHERE AuctionID = ?");
 		getItem.setLong(1, auctionId);
 		ResultSet itemRS = getItem.executeQuery();
@@ -62,7 +61,6 @@ if (userId == null) {
 		itemRS.close();
 		getItem.close();
 
-		// 2️⃣ 최고 입찰자 찾기
 		PreparedStatement ps = conn.prepareStatement("SELECT BidderID, BidAmount FROM ("
 		+ "SELECT BidderID, BidAmount FROM BIDDING_RECORD WHERE AuctionID = ? ORDER BY BidAmount DESC"
 		+ ") WHERE ROWNUM = 1");
@@ -75,7 +73,6 @@ if (userId == null) {
 			long price = rs.getLong(2);
 			long commission = (long)(price * 0.1);
 
-			// 3️⃣ TRANSACTION 생성
 			PreparedStatement insert = conn.prepareStatement(
 			"INSERT INTO TRANSACTION (TradeID, AuctionID, BuyerID, SELLERID, Final_Price, COMMISSION, TRADETIME) " +
 			"VALUES (seq_transaction_id.NEXTVAL, ?, ?, ?, ?, ?, SYSDATE)");
@@ -88,7 +85,6 @@ if (userId == null) {
 			insert.executeUpdate();
 			insert.close();
 
-			// ⭐ 4️⃣ 인벤토리에 자동 추가
 			if (itemId != -1) {
 		PreparedStatement addInv = conn
 				.prepareStatement("INSERT INTO INVENTORY (UserID, ItemID, Quantity) VALUES (?, ?, 1)");

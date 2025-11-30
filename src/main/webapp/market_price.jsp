@@ -39,7 +39,6 @@
     body { background: #121212; color: #fff; font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
     
     .main-wrapper { padding: 40px; }
-
     .container { max-width: 1000px; margin: 0 auto; }
     
     .search-box {
@@ -108,8 +107,8 @@
                 <input type="number" name="maxPrice" value="<%= maxPriceStr %>" placeholder="최대">
             </div>
             
-            <input type="hidden" name="sort" value="date">
-            <input type="hidden" name="order" value="DESC">
+            <input type="hidden" name="sort" value="<%= sort %>">
+            <input type="hidden" name="order" value="<%= order %>">
             
             <button type="submit" class="btn-search">🔍 검색</button>
         </form>
@@ -179,7 +178,7 @@
             %>
                 <tr>
                     <td style="display:flex; align-items:center; gap:10px;">
-                        <img src="images/<%= rs.getString(1) %>.png" width="40" onerror="this.src='https://via.placeholder.com/40/333/fff?text=IMG'">
+                        <img src="images/<%= catName %>.png" width="40" onerror="this.src='images/default.png'">
                         <%= rs.getString(1) %>
                     </td>
                     <td><span style="background:#333; padding:4px 8px; border-radius:4px; font-size:0.8em;"><%= catName %></span></td>
@@ -203,7 +202,7 @@
             %>
         </table>
         
-        <a href="index.jsp" class="home-btn">로비로 돌아가기</a>
+        <a href="index.jsp" class="home-btn">🏠 로비로 돌아가기</a>
     </div>
 </div>
 </body>

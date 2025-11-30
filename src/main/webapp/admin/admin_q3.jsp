@@ -6,64 +6,149 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Q3: 입찰 내역 검색</title>
+<title>Q3: 가격대별 물품 조회</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .container { max-width: 900px; margin: auto; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    .search-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; }
-    .form-row { margin-bottom: 10px; }
-    label { display: inline-block; width: 100px; font-weight: bold; }
+    body { 
+        font-family: 'Pretendard', sans-serif; 
+        background-color: #121212; 
+        color: #e0e0e0; 
+        margin: 0; 
+        padding: 40px; 
+    }
+
+    .container { 
+        max-width: 900px; 
+        margin: 0 auto; 
+        background: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h2 { 
+        margin-top: 0;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #444;
+        padding-bottom: 15px;
+    }
+
+    .search-box {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 20px;
+        border: 1px solid #444;
+    }
+
+    input[type=number] { 
+        padding: 10px; 
+        border-radius: 6px; 
+        border: 1px solid #555; 
+        background-color: #1a1a1a; 
+        color: #fff;
+        font-size: 1rem;
+        width: 120px;
+        text-align: right;
+        margin: 0 10px;
+    }
+
+    input[type=submit] {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.2s;
+        margin-left: 15px;
+    }
+    input[type=submit]:hover { background-color: #0056b3; }
+
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 20px; 
+        background-color: #252525;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    th { 
+        background-color: #333; 
+        color: #bbb; 
+        padding: 12px; 
+        text-align: center; 
+        border-bottom: 2px solid #444;
+    }
+    
+    td { 
+        padding: 12px; 
+        border-bottom: 1px solid #333; 
+        color: #e0e0e0; 
+        text-align: center;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #2a2a2a; }
+
+    .back-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto 0;
+        padding: 12px;
+        background-color: #444;
+        color: #ccc;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: background 0.2s;
+    }
+    .back-btn:hover { background-color: #555; color: #fff; }
 </style>
 </head>
 <body>
 <div class="container">
 <%
-    String bidderNameParam = request.getParameter("bidder_name");
-    String itemNameParam = request.getParameter("item_name");
-    String minBidParam = request.getParameter("min_bid");
-
-    String searchBidder = (bidderNameParam != null) ? bidderNameParam : "";
-    String searchItem = (itemNameParam != null) ? itemNameParam : "";
-    long minBid = 0;
+    String minPriceStr = request.getParameter("min_price");
+    String maxPriceStr = request.getParameter("max_price");
     
-    if (minBidParam != null && !minBidParam.isEmpty()) {
-        try {
-            minBid = Long.parseLong(minBidParam);
-        } catch (NumberFormatException e) {}
+    long minPrice = 0;
+    long maxPrice = 999999999;
+    
+    if (minPriceStr != null && !minPriceStr.isEmpty()) {
+        try { minPrice = Long.parseLong(minPriceStr); } catch (NumberFormatException e) {}
+    }
+    if (maxPriceStr != null && !maxPriceStr.isEmpty()) {
+        try { maxPrice = Long.parseLong(maxPriceStr); } catch (NumberFormatException e) {}
     }
 %>
-    <h2>Q3: 입찰 내역 상세 검색</h2>
+    <h2>Q3: 가격대별 물품 조회 (BETWEEN)</h2>
     
     <div class="search-box">
         <form action="admin_q3.jsp" method="get">
-            <div class="form-row">
-                <label>입찰자명:</label>
-                <input type="text" name="bidder_name" value="<%=searchBidder%>" placeholder="이름 포함 검색">
-            </div>
-            <div class="form-row">
-                <label>아이템명:</label>
-                <input type="text" name="item_name" value="<%=searchItem%>" placeholder="아이템명 포함 검색">
-            </div>
-            <div class="form-row">
-                <label>최소입찰가:</label>
-                <input type="number" name="min_bid" value="<%=minBid%>" placeholder="0"> 원 이상
-            </div>
-            <div class="form-row">
-                <input type="submit" value="검색하기">
-            </div>
+            가격 범위: 
+            <input type="number" name="min_price" value="<%=minPrice == 0 ? "" : minPrice%>" placeholder="최소 가격">
+            ~
+            <input type="number" name="max_price" value="<%=maxPrice == 999999999 ? "" : maxPrice%>" placeholder="최대 가격">
+            <input type="submit" value="조회">
         </form>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Bidder Name</th>
+                <th>Auction ID</th>
                 <th>Item Name</th>
-                <th>Bid Amount</th>
-                <th>Bid Time</th>
+                <th>Category</th>
+                <th>Current Price</th>
             </tr>
         </thead>
         <tbody>
@@ -72,37 +157,34 @@
     PreparedStatement pstmt = null;
     ResultSet rs = null;
 
-    String sql = "SELECT U.Name AS BidderName, I.Name AS ItemName, BR.BidAmount, BR.BidTime "
-               + "FROM BIDDING_RECORD BR, AUCTION A, ITEM I, USERS U "
-               + "WHERE BR.AuctionID = A.AuctionID "
-               + "  AND A.ItemID = I.ItemID "
-               + "  AND BR.BidderID = U.UserID "
-               + "  AND U.Name LIKE ? "
-               + "  AND I.Name LIKE ? "
-               + "  AND BR.BidAmount >= ?";
+    String sql = "SELECT A.AuctionID, I.Name, C.Name AS CategoryName, A.CurrentHighestPrice "
+               + "FROM AUCTION A "
+               + "JOIN ITEM I ON A.ItemID = I.ItemID "
+               + "JOIN CATEGORY C ON I.CategoryID = C.CategoryID "
+               + "WHERE A.CurrentHighestPrice BETWEEN ? AND ? "
+               + "ORDER BY A.CurrentHighestPrice ASC";
 
     try {
         conn = DBConnection.getConnection();
         pstmt = conn.prepareStatement(sql);
         
-        pstmt.setString(1, "%" + searchBidder + "%");
-        pstmt.setString(2, "%" + searchItem + "%");
-        pstmt.setLong(3, minBid);
+        pstmt.setLong(1, minPrice);
+        pstmt.setLong(2, maxPrice);
         
         rs = pstmt.executeQuery();
         
         while(rs.next()) {
 %>
             <tr>
-                <td><%= rs.getString("BidderName") %></td>
-                <td><%= rs.getString("ItemName") %></td>
-                <td><%= rs.getLong("BidAmount") %></td>
-                <td><%= rs.getString("BidTime") %></td>
+                <td><%= rs.getString("AuctionID") %></td>
+                <td><%= rs.getString("Name") %></td>
+                <td><span style="background:#444; padding:2px 6px; border-radius:4px; font-size:0.8rem;"><%= rs.getString("CategoryName") %></span></td>
+                <td style="color: #28a745; font-weight: bold;"><%= rs.getLong("CurrentHighestPrice") %> G</td>
             </tr>
 <%
         }
     } catch (Exception e) {
-        out.println("<tr><td colspan='4'>DB 오류: " + e.getMessage() + "</td></tr>");
+        out.println("<tr><td colspan='4' style='color:red;'>DB 오류: " + e.getMessage() + "</td></tr>");
     } finally {
         if(rs != null) try { rs.close(); } catch(Exception e){}
         if(pstmt != null) try { pstmt.close(); } catch(Exception e){}
@@ -111,8 +193,8 @@
 %>
         </tbody>
     </table>
-    <br>
-    <a href="admin_menu.jsp">관리자 메뉴로 돌아가기</a>
+    
+    <a href="admin_menu.jsp" class="back-btn">관리자 메뉴로 돌아가기</a>
 </div>
 </body>
 </html>

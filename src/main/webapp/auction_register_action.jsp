@@ -39,17 +39,10 @@
             pstmt.executeUpdate();
             pstmt.close();
 
-            if(qty > 1) {
-                String sqlUpdate = "UPDATE INVENTORY SET Quantity = Quantity - 1 WHERE InventoryID = ?";
-                pstmt = conn.prepareStatement(sqlUpdate);
-                pstmt.setInt(1, invenId);
-                pstmt.executeUpdate();
-            } else {
-                String sqlDelete = "DELETE FROM INVENTORY WHERE InventoryID = ?";
-                pstmt = conn.prepareStatement(sqlDelete);
-                pstmt.setInt(1, invenId);
-                pstmt.executeUpdate();
-            }
+            String sqlUpdate = "UPDATE INVENTORY SET Quantity = Quantity - 1 WHERE InventoryID = ?";
+            pstmt = conn.prepareStatement(sqlUpdate);
+            pstmt.setInt(1, invenId);
+            pstmt.executeUpdate();
             
             out.println("<script>alert('경매 등록이 완료되었습니다!'); location.href='show_my_registered_item_list_action.jsp';</script>");
         } else {

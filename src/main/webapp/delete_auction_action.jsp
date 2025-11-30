@@ -30,7 +30,6 @@
 
         if (rs.next()) {
             String sellerId = rs.getString("SellerID");
-            int itemId = rs.getInt("ItemID");
             int invenId = rs.getInt("RegisterInventoryID");
 
             String userTier = (String) session.getAttribute("userTier");
@@ -38,36 +37,25 @@
                 out.println("<script>alert('본인이 등록한 물품만 삭제할 수 있습니다.'); history.back();</script>");
                 return;
             }
+            rs.close(); pstmt.close();
             
-            pstmt.close();
-            String sqlInvenCheck = "SELECT count(*) FROM INVENTORY WHERE InventoryID = ?";
-            pstmt = conn.prepareStatement(sqlInvenCheck);
+            String sqlRestore = "UPDATE INVENTORY SET Quantity = Quantity + 1 WHERE InventoryID = ?";
+            pstmt = conn.prepareStatement(sqlRestore);
             pstmt.setInt(1, invenId);
-            ResultSet rsInven = pstmt.executeQuery();
-            
-            boolean invenExists = false;
-            if(rsInven.next() && rsInven.getInt(1) > 0) {
-                invenExists = true;
-            }
-            rsInven.close();
+            int updated = pstmt.executeUpdate();
             pstmt.close();
 
-            if (invenExists) {
-                String sqlRestore = "UPDATE INVENTORY SET Quantity = Quantity + 1 WHERE InventoryID = ?";
-                pstmt = conn.prepareStatement(sqlRestore);
-                pstmt.setInt(1, invenId);
-                pstmt.executeUpdate();
-                pstmt.close();
-            } else {
-                String sqlInsert = "INSERT INTO INVENTORY (InventoryID, UserID, ItemID, Quantity, Conditions, Acquired_Date) " +
-                                   "VALUES (?, ?, ?, 1, 'Return', SYSDATE)";
-                pstmt = conn.prepareStatement(sqlInsert);
-                pstmt.setInt(1, invenId); 
-                pstmt.setString(2, sellerId);
-                pstmt.setInt(3, itemId);
-                pstmt.executeUpdate();
-                pstmt.close();
+            if (updated == 0) {
+                conn.rollback();
+                out.println("<script>alert('오류: 인벤토리 정보를 찾을 수 없어 복구할 수 없습니다.'); history.back();</script>");
+                return;
             }
+
+            String sqlDelHistory = "DELETE FROM MARKET_HISTORY WHERE AuctionID = ?";
+            pstmt = conn.prepareStatement(sqlDelHistory);
+            pstmt.setInt(1, auctionId);
+            pstmt.executeUpdate();
+            pstmt.close();
 
             String sqlDelFav = "DELETE FROM FAVORITE WHERE AuctionID = ?";
             pstmt = conn.prepareStatement(sqlDelFav);
@@ -88,7 +76,7 @@
 
             if (result > 0) {
                 conn.commit();
-                out.println("<script>alert('경매가 취소되었습니다. 아이템이 인벤토리로 반환되었습니다.'); location.href='show_my_registered_item_list_action.jsp';</script>");
+                out.println("<script>alert('경매가 취소되었습니다. 아이템이 원래 상태로 반환되었습니다.'); location.href='show_my_registered_item_list_action.jsp';</script>");
             } else {
                 conn.rollback();
                 out.println("<script>alert('경매 삭제에 실패했습니다.'); history.back();</script>");
