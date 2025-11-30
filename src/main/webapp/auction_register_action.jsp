@@ -10,13 +10,9 @@
     int duration = Integer.parseInt(request.getParameter("durationHours"));
 
     Connection conn = null;
-    PreparedStatement ps1 = null;
-    PreparedStatement ps2 = null;
-    PreparedStatement ps3 = null;
-    PreparedStatement ps4 = null;
+    PreparedStatement pstmt = null;
     ResultSet rs = null;
 
-    int deleted = 0;
 
     try {
         conn = DBConnection.getConnection();
@@ -25,7 +21,7 @@
         String sqlUpdate = "UPDATE INVENTORY SET Quantity = Quantity - 1 WHERE InventoryID = ? AND UserID = ? AND Quantity > 0";
         pstmt = conn.prepareStatement(sqlUpdate);
         pstmt.setInt(1, invenId);
-        pstmt.setInt(2, userId);
+        pstmt.setString(2, userId);
         int updated = pstmt.executeUpdate();
 
         // 존재하지 않는 경우
@@ -36,7 +32,7 @@
         }
 
         String sqlInsert = "INSERT INTO AUCTION (AUCTIONID, START_PRICE, STARTTIME, ENDTIME, CURRENTHIGHESTPRICE, ITEMID, SELLERID, REGISTERINVENTORYID) " +
-                        "VALUES (AUCTION_SEQ.NEXTVAL, ?, SYSDATE, SYSDATE + (?/24), ?, ?, ?, ?)";
+                        "VALUES ((SELECT NVL(MAX(AUCTIONID), 0) + 1 FROM AUCTION), ?, SYSDATE, SYSDATE + (?/24), ?, ?, ?, ?)";
 
         pstmt = conn.prepareStatement(sqlInsert);
         pstmt.setLong(1, startPrice);
@@ -67,7 +63,7 @@
     } catch(Exception e) {
         e.printStackTrace();
         try{if (conn != null) conn.rollback();} catch(Exception ignore) {}
-        out.println("<script>alert('등록 중 오류 발생: " + e.getMessage() + "'); history.back();</script>");
+        out.println("<script>alert('등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'); history.back();</script>");
     } finally {
         try{if(rs!=null) rs.close();} catch(Exception ignore){}
         try{if(pstmt!=null) pstmt.close(); } catch(Exception ignore){}

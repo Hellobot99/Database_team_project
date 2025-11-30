@@ -48,12 +48,11 @@
         }
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        String sqlDelAuc = "DELETE FROM AUCTION WHERE AuctionID = ? AND NOT EXISTS (SELECT 1 FROM bidding_record where auctionid = ?) AND EndTime > ?";
+        String sqlDelAuc = "DELETE FROM AUCTION WHERE AuctionID = ? AND EndTime > ? AND NOT EXISTS (SELECT 1 FROM bidding_record where auctionid = ?)";
         ps1 = conn.prepareStatement(sqlDelAuc);
         ps1.setInt(1, auctionId);
-        ps1.setInt(2, auctionId);
-        ps1.setTimeStamp(3, now);
-
+        ps1.setTimestamp(2, now);
+        ps1.setInt(3, auctionId);
         int deleted = ps1.executeUpdate();
 
         if(deleted == 0){
