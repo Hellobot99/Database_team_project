@@ -184,7 +184,7 @@
                     <td><span style="background:#333; padding:4px 8px; border-radius:4px; font-size:0.8em;"><%= catName %></span></td>
                     <td class="price"><%= df.format(rs.getInt(3)) %> G</td>
                     <td><%= rs.getString(4) %></td>
-                    <td class="date"><%= rs.getTimestamp(5) %></td>
+                    <td class="date"><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rs.getTimestamp(5)) %></td>
                 </tr>
             <%
                 }
@@ -195,9 +195,9 @@
                 e.printStackTrace(); 
                 out.println("<tr><td colspan='5' style='color:red; text-align:center;'>오류: " + e.getMessage() + "</td></tr>");
             } finally { 
-                if(rs!=null) rs.close(); 
-                if(pstmt!=null) pstmt.close(); 
-                if(conn!=null) conn.close(); 
+                try{if(rs!=null) rs.close();} catch(Exception ignore){} 
+                try{if(pstmt!=null) pstmt.close();} catch(Exception ignore){} 
+                try{if(conn!=null) conn.close(); } catch(Exception ignore){} 
             }
             %>
         </table>

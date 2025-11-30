@@ -2,6 +2,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%
+Connection conn = null;
+PreparedStatement ps1 = null;
+PreparedStatement ps2 = null;
+PreparedStatement ps3 = null;
+ResultSet rs = null;
+
 try {
     String userId = (String) session.getAttribute("userId");
     if (userId == null) {
@@ -17,61 +23,72 @@ try {
     long auctionId = Long.parseLong(request.getParameter("auctionId"));
     long amount    = Long.parseLong(request.getParameter("amount"));
 
-    Connection conn = DBConnection.getConnection();
+    conn = DBConnection.getConnection();
+    conn.setAutoCommit(false);
     
-    PreparedStatement ps1 = conn.prepareStatement(
-        "SELECT CurrentHighestPrice, SellerID FROM AUCTION WHERE AuctionID = ?"
+    ps1 = conn.prepareStatement(
+        "SELECT SellerID FROM AUCTION WHERE AuctionID = ?"
     );
     ps1.setLong(1, auctionId);
-    ResultSet rs = ps1.executeQuery();
+    rs = ps1.executeQuery();
 
-    long currentPrice = 0;
     String sellerId = "";
     
     if (rs.next()) {
-        currentPrice = rs.getLong(1);
-        sellerId = rs.getString(2);
+        sellerId = rs.getString(1);
+    } else {
+        conn.rollback();
+        out.println("<script>");
+        out.println("alert('존재하지 않는 경매입니다.');");
+        out.println("history.back();");
+        out.println("</script>");
+        return;
     }
-    rs.close();
-    ps1.close();
 
     if (userId.equals(sellerId)) {
         out.println("<script>");
         out.println("alert('본인이 등록한 물품에는 입찰할 수 없습니다.');");
         out.println("history.back();");
         out.println("</script>");
-        conn.close();
         return;
     }
+    java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+    ps2 = conn.prepareStatement(
+        "UPDATE AUCTION SET CurrentHighestPrice = ? WHERE AuctionID = ? and CurrentHighestPrice < ? " +
+        "and EXISTS (select 1 from USERS where UserId = ? and Balance >=  ?) " +
+        "and Endtime > ?"
+    );
+    ps2.setLong(1, amount);
+    ps2.setLong(2, auctionId);
+    ps2.setLong(3, amount);
+    ps2.setString(4, userId);
+    ps2.setLong(5, amount);
+    ps2.setTimestamp(6, now);
+    int updated = ps2.executeUpdate();
 
-    if (amount <= currentPrice) {
+    if (updated == 0) {
+        // 이미 더 높은 입찰이 있거나, 내가 넣은 금액이 현재가 이하인 경우 or 내가 가진 금액이 그 보다 없음.
+        conn.rollback();
         out.println("<script>");
-        out.println("alert('입찰 실패: 현재 최고가보다 높은 금액만 입찰할 수 있습니다.');");
+        out.println("alert('입찰 실패: 이미 마감되었거나, 가진 금액이 부족하거나, 현재 최고가보다 높은 금액만 입찰할 수 있습니다.');");
         out.println("history.back();");
         out.println("</script>");
-        conn.close();
         return;
     }
 
-    PreparedStatement ps2 = conn.prepareStatement(
+
+    ps3 = conn.prepareStatement(
         "INSERT INTO BIDDING_RECORD (AuctionID, BidderID, BidAmount, BidTime) " +
-        "VALUES (?, ?, ?, SYSDATE)"
+        "VALUES (?, ?, ?, ?)"
     );
-    ps2.setLong(1, auctionId);
-    ps2.setString(2, userId);
-    ps2.setLong(3, amount);
-    ps2.executeUpdate();
-    ps2.close();
-
-    PreparedStatement ps3 = conn.prepareStatement(
-        "UPDATE AUCTION SET CurrentHighestPrice = ? WHERE AuctionID = ?"
-    );
-    ps3.setLong(1, amount);
-    ps3.setLong(2, auctionId);
+    ps3.setLong(1, auctionId);
+    ps3.setString(2, userId);
+    ps3.setLong(3, amount);
+    ps3.setTimestamp(4, now);
     ps3.executeUpdate();
-    ps3.close();
+ 
 
-    conn.close();
+    conn.commit();
 
     out.println("<script>");
     out.println("alert('입찰 성공!');");
@@ -79,7 +96,21 @@ try {
     out.println("</script>");
 
 } catch (Exception e) {
+    if (conn != null) {
+        try { conn.rollback(); } catch (Exception ignore) {}
+    }
     out.println("<h2>오류 발생</h2>");
     e.printStackTrace();
+} finally{
+    try { if (rs  != null) rs.close();  } catch (Exception ignore) {}
+    try { if (ps1 != null) ps1.close(); } catch (Exception ignore) {}
+    try { if (ps2 != null) ps2.close(); } catch (Exception ignore) {}
+    try { if (ps3 != null) ps3.close(); } catch (Exception ignore) {}
+    try {
+        if (conn != null) {
+            conn.setAutoCommit(true);
+            conn.close();
+        }
+    } catch (Exception ignore) {}
 }
 %>
