@@ -22,7 +22,7 @@
         conn = DBConnection.getConnection();
         conn.setAutoCommit(false);
 
-        String sqlCheck = "SELECT Quantity FROM INVENTORY WHERE InventoryID = ? AND UserID = ?";
+        String sqlCheck = "SELECT Quantity FROM INVENTORY WHERE InventoryID = ? AND UserID = ? FOR UPDATE";
         ps1 = conn.prepareStatement(sqlCheck);
         ps1.setInt(1, invenId);
         ps1.setString(2, userId);

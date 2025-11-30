@@ -27,7 +27,7 @@
         conn = DBConnection.getConnection();
         conn.setAutoCommit(false);
 
-        String sqlCheck = "SELECT SellerID, ItemID, RegisterInventoryID FROM AUCTION WHERE AuctionID = ?";
+        String sqlCheck = "SELECT SellerID, ItemID, RegisterInventoryID FROM AUCTION WHERE AuctionID = ? FOR UPDATE";
         ps1 = conn.prepareStatement(sqlCheck);
         ps1.setInt(1, auctionId);
         rs = ps1.executeQuery();

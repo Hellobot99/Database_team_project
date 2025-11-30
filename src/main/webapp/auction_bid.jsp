@@ -27,7 +27,7 @@ try {
     conn.setAutoCommit(false);
     
     ps1 = conn.prepareStatement(
-        "SELECT SellerID FROM AUCTION WHERE AuctionID = ?"
+        "SELECT SellerID FROM AUCTION WHERE AuctionID = ? FOR UPDATE"
     );
     ps1.setLong(1, auctionId);
     rs = ps1.executeQuery();
