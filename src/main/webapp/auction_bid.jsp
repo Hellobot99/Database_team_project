@@ -27,17 +27,15 @@ try {
     conn.setAutoCommit(false);
     
     ps1 = conn.prepareStatement(
-        "SELECT SellerID, EndTime FROM AUCTION WHERE AuctionID = ? FOR UPDATE"
+        "SELECT SellerID FROM AUCTION WHERE AuctionID = ?"
     );
     ps1.setLong(1, auctionId);
     rs = ps1.executeQuery();
 
     String sellerId = "";
-    Timestamp endTime = null;
     
     if (rs.next()) {
         sellerId = rs.getString(1);
-        endTime = rs.getTimestamp(2);
     } else {
         conn.rollback();
         out.println("<script>");

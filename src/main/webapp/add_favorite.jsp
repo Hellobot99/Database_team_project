@@ -36,8 +36,8 @@
         out.println("location.href='auction_list.jsp';");
         out.println("</script>");
     } finally {	
-        if (ps != null) ps.close();
-        if (conn != null) {conn.setAutoCommit(true); conn.close();}
+        try{ if (ps != null) ps.close(); } catch (Exception ignore) {}
+        try{ if (conn != null) {conn.setAutoCommit(true); conn.close();} } catch (Exception ignore) {}
     }
 
 %>
