@@ -16,26 +16,15 @@
 
     try {
         conn = DBConnection.getConnection();
-        conn.setAutoCommit(false); 
+        conn.setAutoCommit(false);
 
-        String sqlBidCheck = "SELECT count(*) FROM BIDDING_RECORD WHERE AuctionID = ?";
-        pstmt = conn.prepareStatement(sqlBidCheck);
-        pstmt.setInt(1, auctionId);
-        rs = pstmt.executeQuery();
-        
-        if (rs.next() && rs.getInt(1) == 0) {
-            out.println("<script>alert('입찰자가 없는 경매입니다. [나의 거래 내역]에서 아이템을 회수해주세요.'); history.back();</script>");
-            return;
-        }
-        rs.close(); pstmt.close();
-        
         String sqlCheckHistory = "SELECT count(*) FROM MARKET_HISTORY WHERE AuctionID = ?";
         pstmt = conn.prepareStatement(sqlCheckHistory);
         pstmt.setInt(1, auctionId);
         rs = pstmt.executeQuery();
-        
         if (rs.next() && rs.getInt(1) > 0) {
-            out.println("<script>alert('이미 정산된 아이템입니다.'); history.back();</script>");
+            conn.rollback();
+            out.println("<script>alert('이미 정산(입금)된 아이템입니다.'); history.back();</script>");
             return;
         }
         rs.close(); pstmt.close();
@@ -48,7 +37,7 @@
 
         if (rs.next()) {
             long price = rs.getLong("CurrentHighestPrice");
-            
+
             String sqlUpdateUser = "UPDATE USERS SET Balance = Balance + ? WHERE UserID = ?";
             PreparedStatement psUser = conn.prepareStatement(sqlUpdateUser);
             psUser.setLong(1, price);
@@ -58,7 +47,6 @@
 
             String sqlInsertHistory = "INSERT INTO MARKET_HISTORY (HistoryID, AuctionID, TradeTime, FinalPrice) " +
                                       "VALUES ((SELECT NVL(MAX(HistoryID), 0)+1 FROM MARKET_HISTORY), ?, SYSDATE, ?)";
-            
             PreparedStatement psHistory = conn.prepareStatement(sqlInsertHistory);
             psHistory.setInt(1, auctionId);
             psHistory.setLong(2, price);
@@ -68,7 +56,7 @@
             conn.commit();
             out.println("<script>alert('정산 완료! " + price + " G가 입금되었습니다.'); location.href='my_history.jsp';</script>");
         } else {
-            out.println("<script>alert('잘못된 접근입니다.'); history.back();</script>");
+            out.println("<script>alert('잘못된 접근이거나 판매자 정보가 일치하지 않습니다.'); history.back();</script>");
         }
 
     } catch (Exception e) {
