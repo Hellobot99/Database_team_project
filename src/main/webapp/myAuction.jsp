@@ -186,7 +186,7 @@
             <div class="item-card" style="border-color: #007bff;"> 
                 <div style="position:absolute; top:10px; right:10px; background:#007bff; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">참여중</div>
                 
-                <img src="images/<%= categoryName %>.png" class="item-img" onerror="this.src='images/default.png'">
+                <img src="images/<%= categoryName %>.PNG" class="item-img" onerror="this.src='images/default.PNG'">
                 <div class="item-name"><%= name %></div>
                 <div class="item-price"><%= formatter.format(price) %> G</div>
                 <div class="time-box" data-end="<%= endTimeMillis %>">계산 중...</div>
@@ -235,7 +235,7 @@
                     long endTimeMillis = endTime.getTime();
         %>
             <div class="item-card">
-                <img src="images/<%= categoryName %>.png" class="item-img" onerror="this.src='images/default.png'">
+                <img src="images/<%= categoryName %>.PNG" class="item-img" onerror="this.src='images/default.PNG'">
                 <div class="item-name"><%= name %></div>
                 <div class="item-price"><%= formatter.format(price) %> G</div>
                 <div class="time-box" data-end="<%= endTimeMillis %>">계산 중...</div>

@@ -178,7 +178,7 @@
             %>
                 <tr>
                     <td style="display:flex; align-items:center; gap:10px;">
-                        <img src="images/<%= catName %>.png" width="40" onerror="this.src='images/default.png'">
+                        <img src="images/<%= catName %>.PNG" width="40" onerror="this.src='images/default.PNG'">
                         <%= rs.getString(1) %>
                     </td>
                     <td><span style="background:#333; padding:4px 8px; border-radius:4px; font-size:0.8em;"><%= catName %></span></td>

@@ -227,7 +227,7 @@
         %>
 
             <div class="item-card">
-                <img src="images/<%= categoryName %>.png" class="item-img" alt="<%= categoryName %>" onerror="this.src='images/default.png'">
+                <img src="images/<%= categoryName %>.PNG" class="item-img" alt="<%= categoryName %>" onerror="this.src='images/default.PNG'">
                 
                 <h3><%= itemName %></h3>
                 
