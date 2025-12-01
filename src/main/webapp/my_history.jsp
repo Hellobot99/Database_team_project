@@ -100,7 +100,7 @@
                         <span class="date"><%= rs.getTimestamp("EndTime") %></span>
                     </div>
                     <div class="status-area">
-                        <button onclick="if(confirm('아이템을 인벤토리로 회수하시겠습니까?')) location.href='delete_auction_action.jsp?auctionId=<%= rs.getInt("AuctionID") %>'" class="btn-retrieve">↩️ 회수 하기</button>
+                        <button onclick="if(confirm('아이템을 인벤토리로 회수하시겠습니까?')) location.href='return_auction_action.jsp?auctionId=<%= rs.getInt("AuctionID") %>'" class="btn-retrieve">↩️ 회수 하기</button>
                     </div>
                 </div>
             <%
