@@ -169,6 +169,10 @@
                     <label>등급</label>
                     <input type="text" name="tier" value="Bronze" required>
                 </div>
+                <div class="form-group">
+    				<label>초기 금액 (Balance)</label>
+    				<input type="number" name="balance" min="0" value="3000" required placeholder="초기 금액 입력">
+				</div>    
                 <input type="submit" value="추가하기">
             </form>
         </div>
