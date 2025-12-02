@@ -18,7 +18,8 @@
 
     .menu-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        justify-content: center;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 15px;
         padding: 20px;
     }
@@ -79,18 +80,23 @@
                 <div class="menu-desc">내 아이템 등록/삭제 하기</div>
             </a>
 
+            <% if ("ROOKIE".equals(userTier)) { %>
             <a href="tutorial.jsp" class="menu-card guide-card">
                 <div class="menu-icon">📘</div>
                 <div class="menu-title">튜토리얼</div>
                 <div class="menu-desc">게임 이용 가이드</div>
             </a>
+            <% } %>
+
         </div>
         
         <div class="sub-menu">
             <a href="my_history.jsp" class="sub-link" style="color:#ffcc00;">나의 거래 내역</a> | 
             <a href="myAuction.jsp" class="sub-link">참여 중인 경매</a> |
             <a href="myProfile.jsp" class="sub-link">내 정보</a>
-            <% if ("ADMIN".equals(userTier)) { %> | <a href="admin/admin_menu.jsp" class="sub-link" style="color:#28a745;">관리자</a> <% } %>
+            <% if ("ADMIN".equals(userTier)) { %> 
+                | <a href="admin/admin_menu.jsp" class="sub-link" style="color:#28a745;">관리자</a> 
+            <% } %>
         </div>
     </div>
 
