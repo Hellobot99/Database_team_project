@@ -1,4 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+    String userId = (String) session.getAttribute("userId");
+    String userTier = (String) session.getAttribute("userTier");
+
+    if (userId == null) {
+        response.sendRedirect("login.html");
+        return;
+    }
+
+    // ROOKIE(초보자)가 아니면 바로 차단
+    if (!"ROOKIE".equals(userTier)) {
+        out.println("<script>");
+        out.println("alert('튜토리얼은 신규 유저만 이용할 수 있습니다.');");
+        out.println("location.href='index.jsp';");
+        out.println("</script>");
+        return;
+    }
+%>
+
 <!DOCTYPE html>
 <html>
 <head>
