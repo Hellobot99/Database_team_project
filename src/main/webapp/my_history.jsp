@@ -1,11 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, TeamPrj.DBConnection, java.text.DecimalFormat" %>
+
 <%
     String userId = (String) session.getAttribute("userId");
     if (userId == null) { response.sendRedirect("login.html"); return; }
     DecimalFormat df = new DecimalFormat("#,###");
 %>
-<!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
@@ -38,36 +39,43 @@
 
 <div class="main-wrapper">
     <h1 style="text-align:center; margin-bottom:40px;">📜 나의 거래 내역</h1>
-    
+
     <div class="container">
-        
+
         <div class="box">
             <h2 style="color:#ffcc00;">💰 판매 완료 (낙찰됨)</h2>
+
             <%
             Connection conn = null;
             PreparedStatement pstmt = null;
             ResultSet rs = null;
             try {
                 conn = DBConnection.getConnection();
-                String sqlSell = "SELECT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime, m.TradeTime " +
-                                 "FROM AUCTION a JOIN ITEM i ON a.ItemID = i.ItemID " +
-                                 "LEFT JOIN MARKET_HISTORY m ON a.AuctionID = m.AuctionID " + 
-                                 "WHERE a.SellerID = ? AND a.EndTime < SYSDATE " +
-                                 "AND EXISTS (SELECT 1 FROM BIDDING_RECORD br WHERE br.AuctionID = a.AuctionID) " +
-                                 "ORDER BY a.EndTime DESC";
+                String sqlSell =
+                    "SELECT a.AuctionID, i.Name, a.CurrentHighestPrice, a.EndTime, m.TradeTime " +
+                    "FROM AUCTION a JOIN ITEM i ON a.ItemID = i.ItemID " +
+                    "LEFT JOIN MARKET_HISTORY m ON a.AuctionID = m.AuctionID " +
+                    "WHERE a.SellerID = ? AND a.EndTime < SYSDATE " +
+                    "AND EXISTS (SELECT 1 FROM BIDDING_RECORD br WHERE br.AuctionID = a.AuctionID) " +
+                    "ORDER BY a.EndTime DESC";
+
                 pstmt = conn.prepareStatement(sqlSell);
                 pstmt.setString(1, userId);
                 rs = pstmt.executeQuery();
+
                 while(rs.next()) {
                     boolean isSettled = (rs.getTimestamp("TradeTime") != null);
             %>
+
                 <div class="item-row">
                     <div class="item-info">
                         <div class="item-name"><%= rs.getString("Name") %></div>
                         <span class="date"><%= rs.getTimestamp("EndTime") %></span>
                     </div>
+
                     <div class="status-area">
                         <span class="plus">+ <%= df.format(rs.getInt("CurrentHighestPrice")) %> G</span>
+
                         <% if (!isSettled) { %>
                             <button onclick="location.href='settlement_action.jsp?auctionId=<%= rs.getInt("AuctionID") %>'" class="btn-receive">💰 정산 받기</button>
                         <% } else { %>
@@ -75,82 +83,93 @@
                         <% } %>
                     </div>
                 </div>
-            <%
-                }
-                rs.close(); pstmt.close();
-            %>
+
+            <% }
+                rs.close(); pstmt.close(); %>
         </div>
+
 
         <div class="box">
             <h2 style="color:#dc3545;">🚫 유찰 (입찰자 없음)</h2>
+
             <%
-                String sqlFail = "SELECT a.AuctionID, i.Name, a.EndTime " +
-                                 "FROM AUCTION a JOIN ITEM i ON a.ItemID = i.ItemID " +
-                                 "WHERE a.SellerID = ? AND a.EndTime < SYSDATE " +
-                                 "AND NOT EXISTS (SELECT 1 FROM BIDDING_RECORD br WHERE br.AuctionID = a.AuctionID) " +
-                                 "ORDER BY a.EndTime DESC";
-                pstmt = conn.prepareStatement(sqlFail);
-                pstmt.setString(1, userId);
-                rs = pstmt.executeQuery();
-                while(rs.next()) {
+            String sqlFail =
+                "SELECT a.AuctionID, i.Name, a.EndTime " +
+                "FROM AUCTION a JOIN ITEM i ON a.ItemID = i.ItemID " +
+                "WHERE a.SellerID = ? AND a.EndTime < SYSDATE " +
+                "AND NOT EXISTS (SELECT 1 FROM BIDDING_RECORD br WHERE br.AuctionID = a.AuctionID) " +
+                "ORDER BY a.EndTime DESC";
+
+            pstmt = conn.prepareStatement(sqlFail);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+
+            while(rs.next()) {
             %>
+
                 <div class="item-row">
                     <div class="item-info">
                         <div class="item-name"><%= rs.getString("Name") %></div>
                         <span class="date"><%= rs.getTimestamp("EndTime") %></span>
                     </div>
+
                     <div class="status-area">
                         <button onclick="if(confirm('아이템을 인벤토리로 회수하시겠습니까?')) location.href='return_auction_action.jsp?auctionId=<%= rs.getInt("AuctionID") %>'" class="btn-retrieve">↩️ 회수 하기</button>
                     </div>
                 </div>
-            <%
-                }
-                rs.close(); pstmt.close();
-            %>
+
+            <% }
+                rs.close(); pstmt.close(); %>
         </div>
 
         <div class="box">
             <h2 style="color:#00c6ff;">🛒 구매 완료 (지출)</h2>
+
             <%
-                String sqlBuy = "SELECT a.AuctionID, i.Name, b.BidAmount, b.BidTime, INV.InventoryID AS SellerToken " +
-                                "FROM BIDDING_RECORD b " +
-                                "JOIN AUCTION a ON b.AuctionID = a.AuctionID " +
-                                "JOIN ITEM i ON a.ItemID = i.ItemID " +
-                                "LEFT JOIN INVENTORY INV ON a.RegisterInventoryID = INV.InventoryID " +  // ★ 판매자의 유령 아이템 확인
-                                "WHERE b.BidderID = ? AND a.EndTime < SYSDATE " +
-                                "AND b.BidAmount = (SELECT MAX(BidAmount) FROM BIDDING_RECORD WHERE AuctionID = a.AuctionID) " + 
-                                "ORDER BY b.BidTime DESC";
-                
-                pstmt = conn.prepareStatement(sqlBuy);
-                pstmt.setString(1, userId);
-                rs = pstmt.executeQuery();
-                while(rs.next()) {
-                    boolean canReceive = (rs.getObject("SellerToken") != null);
+            String sqlBuy =
+                "SELECT a.AuctionID, i.Name, b.BidAmount, b.BidTime, a.ReceivedFlag " +
+                "FROM BIDDING_RECORD b " +
+                "JOIN AUCTION a ON b.AuctionID = a.AuctionID " +
+                "JOIN ITEM i ON a.ItemID = i.ItemID " +
+                "WHERE b.BidderID = ? AND a.EndTime < SYSDATE " +
+                "AND b.BidAmount = (SELECT MAX(BidAmount) FROM BIDDING_RECORD WHERE AuctionID = a.AuctionID) " +
+                "ORDER BY b.BidTime DESC";
+
+            pstmt = conn.prepareStatement(sqlBuy);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+
+            while(rs.next()) {
+                boolean received = (rs.getInt("ReceivedFlag") == 1);
             %>
+
                 <div class="item-row">
                     <div class="item-info">
                         <div class="item-name"><%= rs.getString("Name") %></div>
                         <span class="date"><%= rs.getTimestamp("BidTime") %></span>
                     </div>
+
                     <div class="status-area">
                         <span class="minus">- <%= df.format(rs.getInt("BidAmount")) %> G</span>
-                        
-                        <% if (canReceive) { %>
+
+                        <% if (!received) { %>
                             <button onclick="location.href='receive_item_action.jsp?auctionId=<%= rs.getInt("AuctionID") %>'" class="btn-get-item">📦 아이템 수령</button>
                         <% } else { %>
                             <span class="text-complete">수령 완료</span>
                         <% } %>
                     </div>
                 </div>
-            <%
-                }
+
+            <% }
+                conn.close();
             } catch(Exception e) { e.printStackTrace(); }
-            finally { if(conn!=null) conn.close(); }
             %>
         </div>
+
     </div>
-    
+
     <a href="index.jsp" class="home-btn">🏠 로비로 돌아가기</a>
+
 </div>
 
 </body>

@@ -5,43 +5,46 @@
     String userId = (String) session.getAttribute("userId");
     String auctionIdStr = request.getParameter("auctionId");
 
-    if (userId == null || auctionIdStr == null || auctionIdStr.trim().isEmpty()) {
+    if (userId == null || auctionIdStr == null || !auctionIdStr.matches("\\d+")) {
         out.println("<script>alert('잘못된 접근입니다.'); history.back();</script>");
-        return;
-    }
-
-    if(!auctionIdStr.matches("\\d+")) {
-        out.println("<script>alert('잘못된 요청입니다.'); history.back();</script>");
         return;
     }
 
     int auctionId = Integer.parseInt(auctionIdStr);
 
     Connection conn = null;
-    PreparedStatement psInfo = null;
     PreparedStatement psAuctionLock = null;
+    PreparedStatement psInfo = null;
+    PreparedStatement psNullInv = null;
+    PreparedStatement psDeleteInv = null;
     PreparedStatement psGive = null;
-    PreparedStatement psDelete = null;
+    PreparedStatement psFlag = null;
+    ResultSet rsAuc = null;
     ResultSet rs = null;
 
     try {
         conn = DBConnection.getConnection();
         conn.setAutoCommit(false);
+
+        /* 1) AUCTION 고정 잠금 */
         String sqlLockAuction =
-            "SELECT SellerID, EndTime, ReceivedFlag FROM AUCTION WHERE AuctionID = ? FOR UPDATE";
+            "SELECT SellerID, EndTime, ReceivedFlag, RegisterInventoryID " +
+            "FROM AUCTION WHERE AuctionID = ? FOR UPDATE";
 
         psAuctionLock = conn.prepareStatement(sqlLockAuction);
         psAuctionLock.setInt(1, auctionId);
-        ResultSet rsAuc = psAuctionLock.executeQuery();
+        rsAuc = psAuctionLock.executeQuery();
 
         String sellerId = null;
         Timestamp endTime = null;
         int receivedFlag = 0;
+        int sellerInvenId = 0;
 
         if (rsAuc.next()) {
             sellerId = rsAuc.getString("SellerID");
             endTime = rsAuc.getTimestamp("EndTime");
             receivedFlag = rsAuc.getInt("ReceivedFlag");
+            sellerInvenId = rsAuc.getInt("RegisterInventoryID");
         } else {
             conn.rollback();
             out.println("<script>alert('존재하지 않는 경매입니다.'); history.back();</script>");
@@ -55,14 +58,16 @@
             out.println("<script>alert('경매가 아직 종료되지 않았습니다.'); history.back();</script>");
             return;
         }
+
         if (receivedFlag == 1) {
             conn.rollback();
             out.println("<script>alert('이미 수령된 아이템입니다.'); history.back();</script>");
             return;
         }
 
+        /* 2) 우승 입찰자 + 아이템 정보 조회 */
         String sqlInfo =
-            "SELECT A.ItemID, A.RegisterInventoryID, B.BidderID, INV.Conditions " +
+            "SELECT B.BidderID, A.ItemID, INV.Conditions " +
             "FROM AUCTION A " +
             "JOIN BIDDING_RECORD B ON A.AuctionID = B.AuctionID " +
             "JOIN INVENTORY INV ON A.RegisterInventoryID = INV.InventoryID " +
@@ -81,38 +86,47 @@
 
         String bidderId = rs.getString("BidderID");
         int itemId = rs.getInt("ItemID");
-        int sellerInvenId = rs.getInt("RegisterInventoryID");
         String condition = rs.getString("Conditions");
+
         if (!userId.equals(bidderId)) {
             conn.rollback();
             out.println("<script>alert('낙찰자가 아닙니다.'); history.back();</script>");
             return;
         }
 
-        rs.close();  
+        rs.close();
         psInfo.close();
 
-        String sqlGive =
-            "INSERT INTO INVENTORY (InventoryID, UserID, ItemID, Quantity, Conditions, Acquired_Date) " +
-            "VALUES (INVENTORY_SEQ.NEXTVAL, ?, ?, 1, ?, SYSDATE)";
+        /* 3) AUCTION.RegisterInventoryID 를 먼저 NULL 처리 (FK 충돌 방지 핵심) */
+        psNullInv = conn.prepareStatement(
+            "UPDATE AUCTION SET RegisterInventoryID = NULL WHERE AuctionID = ?"
+        );
+        psNullInv.setInt(1, auctionId);
+        psNullInv.executeUpdate();
 
-        psGive = conn.prepareStatement(sqlGive);
+        /* 4) 판매자 인벤토리 삭제 */
+        psDeleteInv = conn.prepareStatement(
+            "DELETE FROM INVENTORY WHERE InventoryID = ?"
+        );
+        psDeleteInv.setInt(1, sellerInvenId);
+        psDeleteInv.executeUpdate();
+
+        /* 5) 새 인벤토리를 낙찰자에게 지급 */
+        psGive = conn.prepareStatement(
+            "INSERT INTO INVENTORY (InventoryID, UserID, ItemID, Quantity, Conditions, Acquired_Date) " +
+            "VALUES (INVENTORY_SEQ.NEXTVAL, ?, ?, 1, ?, SYSDATE)"
+        );
         psGive.setString(1, userId);
         psGive.setInt(2, itemId);
         psGive.setString(3, condition);
         psGive.executeUpdate();
-        String sqlDelete =
-            "DELETE FROM INVENTORY WHERE InventoryID = ?";
 
-        psDelete = conn.prepareStatement(sqlDelete);
-        psDelete.setInt(1, sellerInvenId);
-        psDelete.executeUpdate();
-        PreparedStatement psFlag = conn.prepareStatement(
+        /* 6) 수령 플래그 체크 */
+        psFlag = conn.prepareStatement(
             "UPDATE AUCTION SET ReceivedFlag = 1 WHERE AuctionID = ?"
         );
         psFlag.setInt(1, auctionId);
         psFlag.executeUpdate();
-        psFlag.close();
 
         conn.commit();
         out.println("<script>alert('아이템 수령 완료! 인벤토리를 확인하세요.'); location.href='my_history.jsp';</script>");
@@ -125,8 +139,10 @@
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ignore) {}
         try { if (psInfo != null) psInfo.close(); } catch (Exception ignore) {}
+        try { if (psNullInv != null) psNullInv.close(); } catch (Exception ignore) {}
+        try { if (psDeleteInv != null) psDeleteInv.close(); } catch (Exception ignore) {}
         try { if (psGive != null) psGive.close(); } catch (Exception ignore) {}
-        try { if (psDelete != null) psDelete.close(); } catch (Exception ignore) {}
+        try { if (psFlag != null) psFlag.close(); } catch (Exception ignore) {}
         try { if (psAuctionLock != null) psAuctionLock.close(); } catch (Exception ignore) {}
         try {
             if (conn != null) {

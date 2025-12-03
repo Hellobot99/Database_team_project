@@ -2,25 +2,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%
-/*
-    개선 포인트
-    - 파라미터(auctionId, amount) null / 숫자 형식 검증
-    - 입찰 금액 > 0, 현재 최고가/이전 최고가보다 반드시 커야 함
-    - AUCTION 행에 대해 FOR UPDATE로 동시 입찰 경합 방지
-    - 경매 마감 시간 명확히 검사
-    - USERS 잔액 차감 시 Balance >= amount 조건으로 음수 방지
-    - 이전 최고 입찰자 == 현재 입찰자일 때 환불 금지
-    - 예외 발생 시 rollback + 서버 로그 기록, 사용자에겐 단순 오류 메시지
-*/
-
 Connection conn = null;
-
-PreparedStatement psAuctionLock = null;  // AUCTION 행 잠금 및 기본 정보 조회
-PreparedStatement psCheckTop   = null;   // 이전 최고 입찰 조회
-PreparedStatement psDeduct     = null;   // 새 입찰자 잔액 차감
-PreparedStatement psRefund     = null;   // 이전 최고 입찰자 환불
-PreparedStatement psUpdateAuc  = null;   // AUCTION 최고가 갱신
-PreparedStatement psInsertBid  = null;   // BIDDING_RECORD 삽입
+PreparedStatement psAuctionLock = null;
+PreparedStatement psDeduct     = null;
+PreparedStatement psRefund     = null;
+PreparedStatement psUpdateAuc  = null;
+PreparedStatement psInsertBid  = null;
+PreparedStatement psCheckTop   = null;
 
 ResultSet rsAuction = null;
 ResultSet rsTop     = null;
@@ -31,6 +19,7 @@ try {
         response.sendRedirect("login.html");
         return;
     }
+    
     if (!"POST".equalsIgnoreCase(request.getMethod())) {
         out.println("<script>");
         out.println("alert('잘못된 접근입니다. (POST 메소드만 허용)');");
@@ -69,21 +58,24 @@ try {
         out.println("</script>");
         return;
     }
+
     conn = DBConnection.getConnection();
     conn.setAutoCommit(false);
     psAuctionLock = conn.prepareStatement(
-        "SELECT SellerID, CurrentHighestPrice, EndTime " +
+        "SELECT SellerID, Start_Price, CurrentHighestPrice, EndTime " +
         "FROM AUCTION WHERE AuctionID = ? FOR UPDATE"
     );
     psAuctionLock.setLong(1, auctionId);
     rsAuction = psAuctionLock.executeQuery();
 
     String sellerId = null;
+    long startPrice = 0L;
     long currentHighestPrice = 0L;
     java.sql.Timestamp endTime = null;
 
     if (rsAuction.next()) {
         sellerId            = rsAuction.getString("SellerID");
+        startPrice          = rsAuction.getLong("Start_Price");
         currentHighestPrice = rsAuction.getLong("CurrentHighestPrice");
         endTime             = rsAuction.getTimestamp("EndTime");
     } else {
@@ -94,7 +86,6 @@ try {
         out.println("</script>");
         return;
     }
-
     java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
     if (endTime != null && !endTime.after(now)) {
         conn.rollback();
@@ -114,30 +105,12 @@ try {
         return;
     }
 
-    String prevBidderId = null;
-    long prevBidAmount  = 0L;
-
-    String sqlCheckTop =
-        "SELECT BidderID, BidAmount " +
-        "FROM BIDDING_RECORD " +
-        "WHERE AuctionID = ? " +
-        "ORDER BY BidAmount DESC, BidTime ASC " +
-        "FETCH FIRST 1 ROWS ONLY";
-
-    psCheckTop = conn.prepareStatement(sqlCheckTop);
-    psCheckTop.setLong(1, auctionId);
-    rsTop = psCheckTop.executeQuery();
-
-    if (rsTop.next()) {
-        prevBidderId = rsTop.getString("BidderID");
-        prevBidAmount = rsTop.getLong("BidAmount");
-    }
-
-    long basePrice = Math.max(currentHighestPrice, prevBidAmount);
-    if (amount <= basePrice) {
+    long minimumBid = (currentHighestPrice > 0) ? currentHighestPrice + 1 : startPrice;
+    
+    if (amount < minimumBid) {
         conn.rollback();
         out.println("<script>");
-        out.println("alert('현재 최고 입찰가보다 더 높은 금액만 입찰할 수 있습니다.');");
+        out.println("alert('입찰 금액은 최소 " + minimumBid + " G 이상이어야 합니다.');");
         out.println("history.back();");
         out.println("</script>");
         return;
@@ -161,6 +134,25 @@ try {
         out.println("history.back();");
         out.println("</script>");
         return;
+    }
+
+    String sqlCheckTop =
+        "SELECT BidderID, BidAmount " +
+        "FROM BIDDING_RECORD " +
+        "WHERE AuctionID = ? " +
+        "ORDER BY BidAmount DESC, BidTime ASC " +
+        "FETCH FIRST 1 ROWS ONLY";
+
+    psCheckTop = conn.prepareStatement(sqlCheckTop);
+    psCheckTop.setLong(1, auctionId);
+    rsTop = psCheckTop.executeQuery();
+
+    String prevBidderId = null;
+    long prevBidAmount  = 0L;
+
+    if (rsTop.next()) {
+        prevBidderId = rsTop.getString("BidderID");
+        prevBidAmount = rsTop.getLong("BidAmount");
     }
 
     if (prevBidderId != null && !prevBidderId.equals(userId)) {
@@ -201,6 +193,7 @@ try {
         return;
     }
 
+    // ========== 8. 입찰 기록 추가 ==========
     psInsertBid = conn.prepareStatement(
         "INSERT INTO BIDDING_RECORD (AuctionID, BidderID, BidAmount, BidTime) " +
         "VALUES (?, ?, ?, ?)"
@@ -210,6 +203,7 @@ try {
     psInsertBid.setLong(3, amount);
     psInsertBid.setTimestamp(4, now);
     psInsertBid.executeUpdate();
+
     conn.commit();
 
     out.println("<script>");
@@ -221,7 +215,7 @@ try {
     if (conn != null) {
         try { conn.rollback(); } catch (Exception ignore) {}
     }
-    log("Bidding Error in bidding_process.jsp: " + e.getMessage(), e);
+    log("Bidding Error: " + e.getMessage(), e);
     out.println("<script>");
     out.println("alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');");
     out.println("history.back();");
